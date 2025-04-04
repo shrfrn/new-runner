@@ -1,0 +1,33 @@
+.sidebar {
+
+    summary {
+        margin-block: .4em;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        gap: .3em;
+    }
+
+    a.sidebar-item {
+        margin-inline-start: 1em;
+        font-size: .9em;
+        text-decoration: none;
+        color: inherit;
+        padding: 0.2em 0.5em;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    }
+
+    a.sidebar-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    a.sidebar-item.active {
+        background-color: rgba(0, 0, 0, 0.1);
+        font-weight: 500;
+    }
+}
