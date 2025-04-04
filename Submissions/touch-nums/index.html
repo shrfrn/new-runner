@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+  <title>touch-nums</title>
+</head>
+
+<body onload="onInit()">
+  <h1>Touch 'Em</h1>
+
+  <div class="board-container">
+    <h2>Next Number: <span></span></h2>
+    <table></table>
+  </div>
+  
+  <div class="modal">
+    <h2>Congratulations! you won!</h2>
+    <img src="img/trophy.png" />
+  </div>  
+
+  <div class="timer-container">
+    <span class="timer">00 : 000</span>
+  </div>
+
+  <div class="new-game">
+    <button onclick="onInit()">New game</button>
+  </div>
+
+  <div class="difficulty-container">
+    <h4>Diffuclty</h4>
+    <button onclick="onSetLevel(9)">9</button>
+    <button onclick="onSetLevel(16)">16</button>
+    <button onclick="onSetLevel(25)">25</button>
+    <button onclick="onSetLevel(36)">36</button>
+  </div>
+  <script src="js/util.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

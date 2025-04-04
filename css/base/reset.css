@@ -1,0 +1,50 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    :root {
+        transition-behavior: allow-discrete;
+    }
+    
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+html {
+    color-scheme: light dark;
+}
+
+body, h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+ul, ol {
+    list-style: none;
+    padding: 0;
+}
+
+a[class] {
+    text-decoration: none;
+    color: inherit;
+}
+
+input, textarea, select, button {
+    font: inherit;
+    max-width: 100%;
+}

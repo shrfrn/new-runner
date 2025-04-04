@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Try Stuff</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body onkeyup="onHandleKey(event)" onload="onInit()">
+    <h1>I like JS</h1>
+    <h2>its so... <span></span></h2>
+    <div class="box">
+        <p>
+            Do the <span onclick="onChangeSubHeader(this)">difficult</span> things while they
+            are <span onclick="onChangeSubHeader(this)">easy</span> and do the great things while they are small.
+            A journey of a thousand miles must begin with a single step.
+        </p>
+        <img src="img/ninja.png" onclick="onImgClicked()" onmouseenter="onMouseEnter(this)"
+            onmouseleave="onMouseLeave(this)" />
+    </div>
+
+    <button onclick="onMark(this)">Mark</button>
+    <button onclick="onBless()">Bless</button>
+
+    <div class="modal hide">
+        <button onclick="onCloseModal()">x</button>
+        <h2>Easy (Kal)</h2>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

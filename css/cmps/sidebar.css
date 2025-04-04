@@ -1,0 +1,19 @@
+.sidebar {
+
+    summary {
+        margin-block: .4em;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        gap: .3em;
+    }
+
+    a.sidebar-item {
+        margin-inline-start: 1em;
+        font-size: .9em;
+    }
+}
