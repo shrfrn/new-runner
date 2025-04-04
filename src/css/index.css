@@ -3,5 +3,6 @@
 /* Components*/
 
 @import './app.css';
+@import './cmps/header.css';
 @import './cmps/sidebar.css';
 @import './cmps/markdown-content.css';
