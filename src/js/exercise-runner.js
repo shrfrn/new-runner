@@ -120,7 +120,13 @@ async function sendScriptToServer() {
     const scriptFile = exerciseItem.solution.files[0]
     const scriptSrc = `../../Submissions/${exerciseItem.solution.folder}/${scriptFile}`
 
+	// Get the test button to update its text
+	const testButton = document.getElementById('test-button')
+	const originalText = testButton.textContent
+
 	try {
+		// Update button text to show submission is in progress
+		testButton.textContent = 'Submitting...'
 		// Fetch the script content
 		const response = await fetch(scriptSrc)
 		if (!response.ok) {
@@ -176,9 +182,20 @@ async function sendScriptToServer() {
 
 		// Clean up the URL object after the tab is opened
 		setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+		// Update button text to show submission was successful
+		testButton.textContent = 'Submitted!'
+
+		// Reset the button text after a short delay
+		setTimeout(() => {
+			testButton.textContent = originalText
+		}, 2000)
 	} catch (error) {
         console.clear()
 		console.log(`%cScript not found Submissions/${exerciseItem.solution.folder}/${scriptFile}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
+
+		// Reset the button text in case of error
+		testButton.textContent = originalText
     }
 }
 
