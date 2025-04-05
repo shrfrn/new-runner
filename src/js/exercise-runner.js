@@ -12,6 +12,9 @@ function init() {
 	// Set up the Run button
 	setupRunButton()
 
+	// Set up the Test button
+	setupTestButton()
+
 	// Handle popstate events for browser back/forward navigation
 	window.addEventListener('popstate', event => {
 		if (event.state && event.state.exPath) {
@@ -38,6 +41,89 @@ function setupRunButton() {
 		// Load and execute the corresponding JavaScript file from the submissions folder
 		loadAndExecuteScript()
 	})
+}
+
+// Set up the Test button functionality
+function setupTestButton() {
+	const testButton = document.getElementById('test-button')
+
+	testButton.addEventListener('click', () => {
+		if (!currentExercise) return
+
+		// Send the current script to the server for testing
+		sendScriptToServer()
+	})
+}
+
+// Function to send the current script to the server for testing
+async function sendScriptToServer() {
+    // Find the current exercise in the TOC
+    const exerciseItem = findExerciseInToc(currentExercise)
+
+    // Get the first file from the files array (which should be the JS file)
+    const scriptFile = exerciseItem.solution.files[0]
+    const scriptSrc = `../../Submissions/${exerciseItem.solution.folder}/${scriptFile}`
+
+	try {
+		// Fetch the script content
+		const response = await fetch(scriptSrc)
+		if (!response.ok) {
+			throw new Error(`Failed to load script: ${response.status} ${response.statusText}`)
+		}
+
+		// Get the script content as text
+		const scriptContent = await response.text()
+
+		// Create a File object from the script content
+		const file = new File([scriptContent], scriptFile, { type: 'text/javascript' })
+
+		// Create a FormData object and append the file and exerciseId
+		const formData = new FormData()
+		formData.append('file', file)
+
+		// Extract just the number from the exercise ID (e.g., '55' from 'js-basics/55-matrix-operations')
+		let exerciseNumber = ''
+		const match = currentExercise.match(/\/([0-9]+)/) // Match the number after the slash
+		if (match && match[1]) {
+			exerciseNumber = match[1]
+		} else {
+			// If we can't extract the number, log an error and use the full path as fallback
+			console.warn(`Could not extract exercise number from ${currentExercise}, using full path instead`)
+			exerciseNumber = currentExercise
+		}
+
+		formData.append('exerciseId', exerciseNumber)
+
+		// We'll use fetch to send the data directly
+
+		// Send the POST request using fetch and open the response in a new tab
+		const serverResponse = await fetch('http://localhost:3000/api/test', {
+			method: 'POST',
+			body: formData
+		})
+
+		if (!serverResponse.ok) {
+			throw new Error(`Server error: ${serverResponse.status} ${serverResponse.statusText}`)
+		}
+
+		// Get the HTML response
+		const htmlReport = await serverResponse.text()
+
+		// Create a blob from the HTML response
+		const blob = new Blob([htmlReport], { type: 'text/html' })
+
+		// Create a URL for the blob
+		const url = URL.createObjectURL(blob)
+
+		// Open the URL in a new tab
+		window.open(url, '_blank')
+
+		// Clean up the URL object after the tab is opened
+		setTimeout(() => URL.revokeObjectURL(url), 1000)
+	} catch (error) {
+        console.clear()
+		console.log(`%cScript not found Submissions/${exerciseItem.solution.folder}/${scriptFile}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
+    }
 }
 
 function renderSidebar(items) {
@@ -70,6 +156,7 @@ function buildSideBar(items) {
 // Global function to handle sidebar item clicks
 window.onLoadItem = function (ev, exPath) {
 	ev.preventDefault()
+    
 	loadMarkdownContent(exPath)
 	updateActiveNavItem(exPath)
 
@@ -78,7 +165,7 @@ window.onLoadItem = function (ev, exPath) {
 	const url = `#${exPath}`
 	history.pushState(state, '', url)
 
-	// Update current exercise and enable/disable Run button
+	// Update current exercise and button states
 	currentExercise = exPath
 	updateRunButton(exPath)
 }
@@ -86,6 +173,7 @@ window.onLoadItem = function (ev, exPath) {
 // Function to update the Run button state
 function updateRunButton(exPath) {
 	const runButton = document.getElementById('run-button')
+	const testButton = document.getElementById('test-button')
 
 	// Find the current exercise in the TOC
 	const exerciseItem = findExerciseInToc(exPath)
@@ -93,12 +181,15 @@ function updateRunButton(exPath) {
 	// Enable/disable the Run button based on whether the solution property exists and has files
 	const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
 	runButton.disabled = !hasScript
+	testButton.disabled = !hasScript
 
 	if (hasScript) {
 		const scriptFile = exerciseItem.solution.files[0]
 		runButton.title = `Run ${exerciseItem.solution.folder}/${scriptFile}`
+		testButton.title = `Test ${exerciseItem.solution.folder}/${scriptFile}`
 	} else {
 		runButton.title = `No script available for this exercise`
+		testButton.title = `No script available for this exercise`
 	}
 }
 
@@ -244,7 +335,7 @@ function updateActiveNavItem(exPath) {
 		}
 	}
 
-	// Update current exercise and Run button state
+	// Update current exercise and button states
 	currentExercise = exPath
 	updateRunButton(exPath)
 }
