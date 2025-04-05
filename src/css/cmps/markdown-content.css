@@ -1,32 +1,39 @@
 .main-content {
-    padding: 1rem;
-    line-height: 1.5;
+    padding: 1rem 2rem;
+    line-height: 1.6;
+    font-size: 1rem;
 }
 
 .main-content h1 {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.5rem;
 }
 
 .main-content h2 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 0.3rem;
+}
+
+.main-content h3 {
+    font-size: 1.4rem;
     margin-top: 1.5rem;
     margin-bottom: 0.8rem;
 }
 
-.main-content h3 {
-    font-size: 1.2rem;
-    margin-top: 1.2rem;
-    margin-bottom: 0.6rem;
-}
-
 .main-content p {
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
 }
 
 .main-content ul, .main-content ol {
-    margin-left: 1.5rem;
-    margin-bottom: 1rem;
+    margin-left: 2rem;
+    margin-bottom: 1.5rem;
+    margin-top: 1rem;
 }
 
 .main-content ul {
@@ -39,32 +46,160 @@
 
 .main-content li {
     margin-bottom: 0.5rem;
+    line-height: 1.6;
 }
 
 .main-content code {
-    font-family: monospace;
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 0.2em 0.4em;
+    font-family: 'Consolas', 'Monaco', 'Andale Mono', monospace;
+    background-color: var(--color-code-background);
+    padding: 0.1em 0.3em;
     border-radius: 3px;
+    font-size: 0.9em;
+    color: var(--color-code-function); /* Default to function color */
+}
+
+/* Special styling for inline code that represents function names, variables, etc. */
+.main-content p code, .main-content li code {
+    color: var(--color-code-function);
+}
+
+/* Light/dark mode specific code styling */
+@media (prefers-color-scheme: light) {
+    .main-content code {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .main-content code {
+        color: #e4e4e4;
+    }
+
+    .main-content p code, .main-content li code {
+        color: #E8A450; /* More orange color for inline code in dark mode */
+    }
 }
 
 .main-content pre {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--color-code-background);
     padding: 1rem;
-    border-radius: 5px;
+    border-radius: 6px;
     overflow-x: auto;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    margin-top: 1rem;
+    border: 1px solid var(--color-border);
+}
+
+@media (prefers-color-scheme: light) {
+    .main-content pre {
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 }
 
 .main-content pre code {
     background-color: transparent;
     padding: 0;
+    display: block;
+    line-height: 1.5;
+    border: none;
+}
+
+/* Placeholder styles for syntax highlighting (to be implemented later) */
+.main-content .keyword {
+    color: var(--color-code-keyword);
+}
+
+.main-content .function {
+    color: var(--color-code-function);
+}
+
+.main-content .string {
+    color: var(--color-code-string);
+}
+
+.main-content .number {
+    color: var(--color-code-number);
+}
+
+.main-content .comment {
+    color: var(--color-code-comment);
+    font-style: italic;
+}
+
+.main-content .variable {
+    color: var(--color-code-variable);
 }
 
 .main-content blockquote {
-    border-left: 4px solid rgba(0, 0, 0, 0.1);
-    padding-left: 1rem;
+    border-left: 4px solid var(--color-border-subtle);
+    padding: 0.5rem 1rem;
     margin-left: 0;
-    margin-bottom: 1rem;
-    color: rgba(0, 0, 0, 0.7);
+    margin-bottom: 1.5rem;
+    margin-top: 1rem;
+    color: var(--color-text-muted);
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 0 4px 4px 0;
+}
+
+/* Exercise specific styles */
+.main-content .exercise-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.5rem;
+}
+
+.main-content .instructions {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 0.3rem;
+}
+
+/* Code block with dark background for examples */
+.main-content .code-example {
+    background-color: var(--color-code-background);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+}
+
+.main-content .code-example code {
+    border: none;
+}
+
+/* Data structure display */
+.main-content .data-structure {
+    background-color: var(--color-code-background);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    font-family: 'Consolas', 'Monaco', 'Andale Mono', monospace;
+    line-height: 1.5;
+}
+
+.main-content .data-structure code {
+    border: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .main-content .code-example,
+    .main-content .data-structure {
+        background-color: #1e1e1e;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    .main-content .code-example,
+    .main-content .data-structure {
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 }

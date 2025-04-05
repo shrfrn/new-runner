@@ -1,0 +1,88 @@
+/* Color Scheme CSS Variables */
+
+:root {
+    /* Base colors */
+    --color-background: whitesmoke;
+    --color-text: #333333;
+    --color-text-muted: rgba(0, 0, 0, 0.7);
+
+    /* Border colors */
+    --color-border: lightgray;
+    --color-border-subtle: rgba(0, 0, 0, 0.1);
+
+    /* UI element colors */
+    --color-ui-hover: rgba(0, 0, 0, 0.05);
+    --color-ui-active: rgba(0, 0, 0, 0.1);
+
+    /* Button colors */
+    --color-button-text: white;
+    --color-button-disabled: #cccccc;
+
+    /* Run button */
+    --color-run-button: #4CAF50;
+    --color-run-button-hover: #45a049;
+
+    /* Test button */
+    --color-test-button: #2196F3;
+    --color-test-button-hover: #0b7dda;
+
+    /* Copy button */
+    --color-copy-button: #9C27B0;
+    --color-copy-button-hover: #7B1FA2;
+
+    /* Code and pre backgrounds */
+    --color-code-background: rgba(0, 0, 0, 0.07);
+
+    /* Code syntax colors for light mode */
+    --color-code-keyword: #0000ff;
+    --color-code-function: #b75c00;
+    --color-code-string: #a31515;
+    --color-code-number: #098658;
+    --color-code-comment: #008000;
+    --color-code-variable: #001080;
+}
+
+/* Dark mode color scheme */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Base colors */
+        --color-background: #121212;
+        --color-text: #e4e4e4;
+        --color-text-muted: rgba(255, 255, 255, 0.7);
+
+        /* Border colors */
+        --color-border: #333333;
+        --color-border-subtle: rgba(255, 255, 255, 0.1);
+
+        /* UI element colors */
+        --color-ui-hover: rgba(255, 255, 255, 0.1);
+        --color-ui-active: rgba(255, 255, 255, 0.15);
+
+        /* Button colors remain mostly the same for recognition */
+        --color-button-text: white;
+        --color-button-disabled: #555555;
+
+        /* Run button - slightly darker for dark mode */
+        --color-run-button: #3d9140;
+        --color-run-button-hover: #348037;
+
+        /* Test button - slightly darker for dark mode */
+        --color-test-button: #1a7fd0;
+        --color-test-button-hover: #0a6cb8;
+
+        /* Copy button - slightly darker for dark mode */
+        --color-copy-button: #8722a0;
+        --color-copy-button-hover: #6b1b80;
+
+        /* Code and pre backgrounds */
+        --color-code-background: #1e1e1e;
+
+        /* Code syntax colors (for future syntax highlighting) */
+        --color-code-keyword: #569CD6;
+        --color-code-function: #DCDCAA;
+        --color-code-string: #CE9178;
+        --color-code-number: #B5CEA8;
+        --color-code-comment: #6A9955;
+        --color-code-variable: #9CDCFE;
+    }
+}

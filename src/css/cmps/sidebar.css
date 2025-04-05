@@ -23,11 +23,11 @@
     }
 
     a.sidebar-item:hover {
-        background-color: rgba(0, 0, 0, 0.05);
+        background-color: var(--color-ui-hover);
     }
 
     a.sidebar-item.active {
-        background-color: rgba(0, 0, 0, 0.1);
+        background-color: var(--color-ui-active);
         font-weight: 500;
     }
 }
