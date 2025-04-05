@@ -15,6 +15,9 @@ function init() {
 	// Set up the Test button
 	setupTestButton()
 
+	// Set up the Copy button
+	setupCopyButton()
+
 	// Handle popstate events for browser back/forward navigation
 	window.addEventListener('popstate', event => {
 		if (event.state && event.state.exPath) {
@@ -53,6 +56,59 @@ function setupTestButton() {
 		// Send the current script to the server for testing
 		sendScriptToServer()
 	})
+}
+
+// Set up the Copy button functionality
+function setupCopyButton() {
+	const copyButton = document.getElementById('copy-button')
+
+	copyButton.addEventListener('click', async () => {
+		if (!currentExercise) return
+
+		// Copy the exercise text as comments to the clipboard
+		await copyExerciseAsComments()
+	})
+}
+
+// Function to copy the exercise text as comments to the clipboard
+async function copyExerciseAsComments() {
+	try {
+		// Get the rendered content from the DOM
+		const contentElement = document.getElementById('markdown-content')
+
+		// Get the text content of the rendered HTML (this automatically removes HTML tags)
+		let plainText = contentElement.innerText
+
+		// Clean up the text (remove extra whitespace, etc.)
+		plainText = plainText.trim()
+
+		// If there's no content, show an error
+		if (!plainText) {
+			throw new Error('No content to copy')
+		}
+
+		// Convert the plain text to JavaScript comments with block comment markers
+		// Add /* at the beginning and */ at the end to make it collapsable in VSCode
+		// Also add // at the beginning of each line for better readability
+		const commentedText = '/*\n// ' + plainText.replace(/\n/g, '\n// ') + '\n*/'
+
+		// Copy the commented text to the clipboard
+		await navigator.clipboard.writeText(commentedText)
+
+		// Provide visual feedback that the copy was successful
+		const copyButton = document.getElementById('copy-button')
+		const originalText = copyButton.textContent
+		copyButton.textContent = 'Copied!'
+
+		// Reset the button text after a short delay
+		setTimeout(() => {
+			copyButton.textContent = originalText
+		}, 2000)
+
+	} catch (error) {
+		console.error('Error copying exercise text:', error)
+		alert(`Error copying exercise text: ${error.message}`)
+	}
 }
 
 // Function to send the current script to the server for testing
@@ -156,7 +212,7 @@ function buildSideBar(items) {
 // Global function to handle sidebar item clicks
 window.onLoadItem = function (ev, exPath) {
 	ev.preventDefault()
-    
+
 	loadMarkdownContent(exPath)
 	updateActiveNavItem(exPath)
 
@@ -174,6 +230,7 @@ window.onLoadItem = function (ev, exPath) {
 function updateRunButton(exPath) {
 	const runButton = document.getElementById('run-button')
 	const testButton = document.getElementById('test-button')
+	const copyButton = document.getElementById('copy-button')
 
 	// Find the current exercise in the TOC
 	const exerciseItem = findExerciseInToc(exPath)
@@ -183,6 +240,9 @@ function updateRunButton(exPath) {
 	runButton.disabled = !hasScript
 	testButton.disabled = !hasScript
 
+	// Enable the Copy button if we have a valid exercise (regardless of script availability)
+	copyButton.disabled = !exerciseItem
+
 	if (hasScript) {
 		const scriptFile = exerciseItem.solution.files[0]
 		runButton.title = `Run ${exerciseItem.solution.folder}/${scriptFile}`
@@ -190,6 +250,12 @@ function updateRunButton(exPath) {
 	} else {
 		runButton.title = `No script available for this exercise`
 		testButton.title = `No script available for this exercise`
+	}
+
+	if (exerciseItem) {
+		copyButton.title = `Copy exercise text as comments`
+	} else {
+		copyButton.title = `No exercise selected`
 	}
 }
 
