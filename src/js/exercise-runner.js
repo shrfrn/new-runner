@@ -1,5 +1,6 @@
 import toc from '../../exercises/toc.js'
 import md from './markdown-it-wrapper.js'
+import { loadConfig, saveConfig } from './services/config.service.js'
 
 // Initialize global state object
 const state = {
@@ -7,12 +8,16 @@ const state = {
 	currentExercise: null,
 	flattenedToc: null,
 	isLoading: false,
-	lastError: null
+	lastError: null,
+	settings: null
 }
 
 document.addEventListener('DOMContentLoaded', init)
 
 function init() {
+	// Load user settings
+	state.settings = loadConfig()
+	
 	// Flatten the TOC once for future use
 	state.flattenedToc = flattenToc(toc.sidebar)
 	
@@ -38,6 +43,21 @@ function init() {
 		if (!isNaN(id)) {
 			loadMarkdownContent(id, false)
 			updateActiveNavItem(id)
+		}
+	} else {
+		// No hash in URL, use the last entry ID from settings
+		const lastEntryId = state.settings.lastEntryId
+		if (lastEntryId) {
+			// Find and programmatically click the sidebar item
+			const sidebarItem = document.querySelector(`a.sidebar-item[data-ex-id="${lastEntryId}"]`)
+			if (sidebarItem) {
+				// Simulate a click on the sidebar item
+				sidebarItem.click()
+			} else {
+				// Fallback if sidebar item not found
+				loadMarkdownContent(lastEntryId, false)
+				updateActiveNavItem(lastEntryId)
+			}
 		}
 	}
 }
@@ -245,13 +265,17 @@ window.onLoadItem = function (ev, id) {
 	updateActiveNavItem(id)
 
 	// Update browser history
-	const state = { id }
+	const historyState = { id }
 	const url = `#${id}`
-	history.pushState(state, '', url)
+	history.pushState(historyState, '', url)
 
 	// Update current exercise and button states
 	state.currentExercise = id
 	updateRunButton(id)
+	
+	// Save the current exercise ID to settings
+	state.settings.lastEntryId = id
+	saveConfig(state.settings)
 }
 
 // Function to update the Run button state
@@ -416,4 +440,17 @@ function updateActiveNavItem(id) {
 	// Update current exercise and button states
 	state.currentExercise = id
 	updateRunButton(id)
+	
+	// Auto-run the script if the autoRun setting is enabled
+	if (state.settings.autoRun) {
+		const exerciseItem = state.flattenedToc.find(item => item.id === id)
+		const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
+		
+		if (hasScript) {
+			// Use a small delay to ensure the UI is updated first
+			setTimeout(() => {
+				loadAndExecuteScript()
+			}, 100)
+		}
+	}
 }
