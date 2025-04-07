@@ -1,36 +1,44 @@
 import toc from '../../exercises/toc.js'
 import md from './markdown-it-wrapper.js'
 
-let currentActiveItem = null
-let currentExercise = null
+// Initialize global state object
+const state = {
+	currentActiveItem: null,
+	currentExercise: null,
+	flattenedToc: null,
+	isLoading: false,
+	lastError: null
+}
 
 document.addEventListener('DOMContentLoaded', init)
 
 function init() {
+	// Flatten the TOC once for future use
+	state.flattenedToc = flattenToc(toc.sidebar)
+	
 	renderSidebar(toc.sidebar)
 
-	// Set up the Run button
 	setupRunButton()
-
-	// Set up the Test button
 	setupTestButton()
-
-	// Set up the Copy button
 	setupCopyButton()
 
 	// Handle popstate events for browser back/forward navigation
 	window.addEventListener('popstate', event => {
-		if (event.state && event.state.exPath) {
-			loadMarkdownContent(event.state.exPath, false)
-			updateActiveNavItem(event.state.exPath)
+		if (event.state && event.state.id) {
+			loadMarkdownContent(event.state.id, false)
+			updateActiveNavItem(event.state.id)
 		}
 	})
 
 	// Check if there's a hash in the URL to load specific content on page load
 	const hash = window.location.hash.substring(1)
 	if (hash) {
-		loadMarkdownContent(hash, false)
-		updateActiveNavItem(hash)
+		// Try to parse the hash as an integer to use as ID
+		const id = parseInt(hash, 10)
+		if (!isNaN(id)) {
+			loadMarkdownContent(id, false)
+			updateActiveNavItem(id)
+		}
 	}
 }
 
@@ -39,7 +47,7 @@ function setupRunButton() {
 	const runButton = document.getElementById('run-button')
 
 	runButton.addEventListener('click', () => {
-		if (!currentExercise) return
+		if (!state.currentExercise) return
 
 		// Load and execute the corresponding JavaScript file from the submissions folder
 		loadAndExecuteScript()
@@ -51,9 +59,7 @@ function setupTestButton() {
 	const testButton = document.getElementById('test-button')
 
 	testButton.addEventListener('click', () => {
-		if (!currentExercise) return
-
-		// Send the current script to the server for testing
+		if (!state.currentExercise) return
 		sendScriptToServer()
 	})
 }
@@ -63,9 +69,7 @@ function setupCopyButton() {
 	const copyButton = document.getElementById('copy-button')
 
 	copyButton.addEventListener('click', async () => {
-		if (!currentExercise) return
-
-		// Copy the exercise text as comments to the clipboard
+		if (!state.currentExercise) return
 		await copyExerciseAsComments()
 	})
 }
@@ -113,8 +117,13 @@ async function copyExerciseAsComments() {
 
 // Function to send the current script to the server for testing
 async function sendScriptToServer() {
-    // Find the current exercise in the TOC
-    const exerciseItem = findExerciseInToc(currentExercise)
+    // Use the flattened TOC from state
+    const exerciseItem = state.flattenedToc.find(item => item.id === state.currentExercise)
+    
+    if (!exerciseItem) {
+        console.error('Exercise not found')
+        return
+    }
 
     // Get the first file from the files array (which should be the JS file)
     const scriptFile = exerciseItem.solution.files[0]
@@ -125,6 +134,8 @@ async function sendScriptToServer() {
 	const originalText = testButton.textContent
 
 	try {
+		// Set loading state
+		state.isLoading = true
 		// Update button text to show submission is in progress
 		testButton.textContent = 'Submitting...'
 		// Fetch the script content
@@ -143,18 +154,8 @@ async function sendScriptToServer() {
 		const formData = new FormData()
 		formData.append('file', file)
 
-		// Extract just the number from the exercise ID (e.g., '55' from 'js-basics/55-matrix-operations')
-		let exerciseNumber = ''
-		const match = currentExercise.match(/\/([0-9]+)/) // Match the number after the slash
-		if (match && match[1]) {
-			exerciseNumber = match[1]
-		} else {
-			// If we can't extract the number, log an error and use the full path as fallback
-			console.warn(`Could not extract exercise number from ${currentExercise}, using full path instead`)
-			exerciseNumber = currentExercise
-		}
-
-		formData.append('exerciseId', exerciseNumber)
+		// Use the id property from the exercise item
+		formData.append('exerciseId', exerciseItem.id.toString())
 
 		// We'll use fetch to send the data directly
 
@@ -189,13 +190,18 @@ async function sendScriptToServer() {
 		// Reset the button text after a short delay
 		setTimeout(() => {
 			testButton.textContent = originalText
+			state.isLoading = false
 		}, 2000)
 	} catch (error) {
         console.clear()
 		console.log(`%cScript not found Submissions/${exerciseItem.solution.folder}/${scriptFile}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
 
+		// Record the error in state
+		state.lastError = error.message
+		
 		// Reset the button text in case of error
 		testButton.textContent = originalText
+		state.isLoading = false
     }
 }
 
@@ -217,40 +223,45 @@ function buildSideBar(items) {
                     <nav>${res}</nav>
                 </details>`
 		} else {
-			// Create a unique ID for the exercise based on its folder and first file
-			const exId = `${entry.ex.folder}/${entry.ex.files[0].split('.')[0]}`
+			// Still need to create the path for loading markdown content
+			const exPath = `${entry.ex.folder}/${entry.ex.files[0].split('.')[0]}`
+			
 			strHtml += `
-                <a class="sidebar-item" data-ex-path="${exId}" onclick="onLoadItem(event, '${exId}')" href="#${exId}">${entry.label}</a>`
+                <a class="sidebar-item" data-ex-id="${entry.id}" data-ex-path="${exPath}" onclick="onLoadItem(event, ${entry.id})" href="#${entry.id}">${entry.label}</a>`
 		}
 	})
 	return strHtml
 }
 
 // Global function to handle sidebar item clicks
-window.onLoadItem = function (ev, exPath) {
+window.onLoadItem = function (ev, id) {
 	ev.preventDefault()
 
-	loadMarkdownContent(exPath)
-	updateActiveNavItem(exPath)
+	// Get the element that was clicked
+	const clickedEl = ev.currentTarget
+	const exPath = clickedEl.getAttribute('data-ex-path')
+
+	loadMarkdownContent(id)
+	updateActiveNavItem(id)
 
 	// Update browser history
-	const state = { exPath }
-	const url = `#${exPath}`
+	const state = { id }
+	const url = `#${id}`
 	history.pushState(state, '', url)
 
 	// Update current exercise and button states
-	currentExercise = exPath
-	updateRunButton(exPath)
+	state.currentExercise = id
+	updateRunButton(id)
 }
 
 // Function to update the Run button state
-function updateRunButton(exPath) {
+function updateRunButton(id) {
 	const runButton = document.getElementById('run-button')
 	const testButton = document.getElementById('test-button')
 	const copyButton = document.getElementById('copy-button')
 
-	// Find the current exercise in the TOC
-	const exerciseItem = findExerciseInToc(exPath)
+	// Use the flattened TOC from state
+	const exerciseItem = state.flattenedToc.find(item => item.id === id)
 
 	// Enable/disable the Run button based on whether the solution property exists and has files
 	const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
@@ -276,24 +287,6 @@ function updateRunButton(exPath) {
 	}
 }
 
-// Function to find an exercise in the TOC by its path
-function findExerciseInToc(exPath) {
-	// Flatten the TOC to make it easier to search
-	const flattenedToc = flattenToc(toc.sidebar)
-
-	// Find the exercise with the matching path
-	// The exPath is now in the format 'folder/filename-without-extension'
-	return flattenedToc.find(item => {
-		if (!item.ex || !item.ex.folder || !item.ex.files || !item.ex.files.length) {
-			return false
-		}
-
-		// Create the ID in the same format as in buildSideBar
-		const exId = `${item.ex.folder}/${item.ex.files[0].split('.')[0]}`
-		return exId === exPath
-	})
-}
-
 // Function to flatten the TOC structure
 function flattenToc(items) {
 	let result = []
@@ -314,12 +307,13 @@ function loadAndExecuteScript() {
 	// Clear the console first
 	console.clear()
 
-	// Find the current exercise in the TOC
-	const exerciseItem = findExerciseInToc(currentExercise)
+	// Use the flattened TOC from state
+	const exerciseItem = state.flattenedToc.find(item => item.id === state.currentExercise)
 
 	// If no solution property exists or no files in the solution, show an error message
 	if (!exerciseItem || !exerciseItem.solution || !exerciseItem.solution.files || !exerciseItem.solution.files.length) {
 		console.error('No script available for this exercise')
+		state.lastError = 'No script available for this exercise'
 		return
 	}
 
@@ -346,33 +340,31 @@ function loadAndExecuteScript() {
 	// Add error handling for the script
 	script.onerror = () => {
 		console.clear()
-		console.log(`%cScript not found: \nSubmissions/${exerciseItem.solution.folder}/${scriptFile}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
+		const errorMsg = `Script not found: \nSubmissions/${exerciseItem.solution.folder}/${scriptFile}`
+		console.log(`%c${errorMsg}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
+		state.lastError = errorMsg
 	}
-
-	// // Add load event handler to confirm successful loading
-	// script.onload = () => {
-	// 	console.log(`Successfully loaded and executed: ${exerciseItem.solution.folder}/${scriptFile}`)
-	// }
 
 	// Add the script to the document to execute it
 	document.body.appendChild(script)
 }
 
 // Function to load and render markdown content
-async function loadMarkdownContent(exPath, showLoading = true) {
+async function loadMarkdownContent(id, showLoading = true) {
 	const contentElement = document.getElementById('markdown-content')
 
 	// Show loading indicator if requested
 	if (showLoading) {
 		contentElement.innerHTML = '<p>Loading...</p>'
+		state.isLoading = true
 	}
 
 	try {
-		// Find the exercise in the TOC to get the markdown file path
-		const exerciseItem = findExerciseInToc(exPath)
+		// Find the exercise in the TOC using the id
+		const exerciseItem = state.flattenedToc.find(item => item.id === id)
 
 		if (!exerciseItem || !exerciseItem.ex || !exerciseItem.ex.folder || !exerciseItem.ex.files || !exerciseItem.ex.files.length) {
-			throw new Error(`Exercise not found or missing required properties: ${exPath}`)
+			throw new Error(`Exercise not found or missing required properties for ID: ${id}`)
 		}
 
 		// Get the folder and first file from the ex property
@@ -392,24 +384,27 @@ async function loadMarkdownContent(exPath, showLoading = true) {
 
 		// Render the markdown content
 		contentElement.innerHTML = md.render(mdContent)
+		state.isLoading = false
 	} catch (error) {
 		console.error('Error loading markdown content:', error)
 		contentElement.innerHTML = `<p>Error loading content: ${error.message}</p>`
+		state.lastError = error.message
+		state.isLoading = false
 	}
 }
 
 // Function to update the active navigation item
-function updateActiveNavItem(exPath) {
+function updateActiveNavItem(id) {
 	// Remove active class from previous item
-	if (currentActiveItem) {
-		currentActiveItem.classList.remove('active')
+	if (state.currentActiveItem) {
+		state.currentActiveItem.classList.remove('active')
 	}
 
 	// Find and add active class to current item
-	const navItem = document.querySelector(`a.sidebar-item[data-ex-path="${exPath}"]`)
+	const navItem = document.querySelector(`a.sidebar-item[data-ex-id="${id}"]`)
 	if (navItem) {
 		navItem.classList.add('active')
-		currentActiveItem = navItem
+		state.currentActiveItem = navItem
 
 		// Open the parent details element if it exists
 		const parentDetails = navItem.closest('details')
@@ -419,6 +414,6 @@ function updateActiveNavItem(exPath) {
 	}
 
 	// Update current exercise and button states
-	currentExercise = exPath
-	updateRunButton(exPath)
+	state.currentExercise = id
+	updateRunButton(id)
 }
