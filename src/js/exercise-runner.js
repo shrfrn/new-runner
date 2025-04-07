@@ -29,34 +29,77 @@ function init() {
 
 	// Handle popstate events for browser back/forward navigation
 	window.addEventListener('popstate', event => {
-		if (event.state && event.state.id) {
-			loadMarkdownContent(event.state.id, false)
-			updateActiveNavItem(event.state.id)
+		if (event.state) {
+            if (event.state.type === 'html') {
+                // For HTML content
+                const htmlItem = document.querySelector(`a.sidebar-item[data-type="html"][data-item-id="${event.state.id}"]`)
+                if (htmlItem) {
+                    // Simulate a click on the sidebar item
+                    htmlItem.click()
+                } else {
+                    // Fallback to loading by folder/file if item not found
+                    loadHtmlContent(event.state.folder, event.state.file)
+                }
+            } else if (event.state.id) {
+                // For markdown content
+                loadMarkdownContent(event.state.id, false)
+                updateActiveNavItem(event.state.id)
+            }
 		}
 	})
 
 	// Check if there's a hash in the URL to load specific content on page load
 	const hash = window.location.hash.substring(1)
 	if (hash) {
-		// Try to parse the hash as an integer to use as ID
-		const id = parseInt(hash, 10)
-		if (!isNaN(id)) {
-			loadMarkdownContent(id, false)
-			updateActiveNavItem(id)
-		}
+		// First try to find any sidebar item with this ID
+        const sidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${hash}"]`)
+        if (sidebarItem) {
+            // Simulate a click on the sidebar item
+            sidebarItem.click()
+        } else {
+            // If no direct match, check if it's a legacy path format (folder/file)
+            if (hash.includes('/')) {
+                // Extract folder and file from the hash
+                const pathParts = hash.split('/')
+                // The last part is the file
+                const file = pathParts.pop()
+                // The rest is the folder path
+                const folder = pathParts.join('/')
+                
+                // Try to find the HTML item by folder/file
+                const htmlItem = document.querySelector(`a.sidebar-item[data-type="html"][data-doc-folder="${folder}"][data-doc-file="${file}"]`)
+                if (htmlItem) {
+                    // Simulate a click on the sidebar item
+                    htmlItem.click()
+                } else {
+                    // Try to load the HTML file directly
+                    loadHtmlContent(folder, file, false)
+                }
+            } else {
+                // Try to parse the hash as an integer to use as ID for markdown content
+                const id = parseInt(hash, 10)
+                if (!isNaN(id)) {
+                    loadMarkdownContent(id, false)
+                    updateActiveNavItem(id)
+                }
+            }
+        }
 	} else {
 		// No hash in URL, use the last entry ID from settings
 		const lastEntryId = state.settings.lastEntryId
 		if (lastEntryId) {
-			// Find and programmatically click the sidebar item
-			const sidebarItem = document.querySelector(`a.sidebar-item[data-ex-id="${lastEntryId}"]`)
+			// Find and programmatically click the sidebar item using data-item-id
+			const sidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${lastEntryId}"]`)
 			if (sidebarItem) {
 				// Simulate a click on the sidebar item
 				sidebarItem.click()
 			} else {
-				// Fallback if sidebar item not found
-				loadMarkdownContent(lastEntryId, false)
-				updateActiveNavItem(lastEntryId)
+				// Fallback if sidebar item not found - try as number for backward compatibility
+				const numberId = parseInt(lastEntryId, 10)
+				if (!isNaN(numberId)) {
+					loadMarkdownContent(numberId, false)
+					updateActiveNavItem(numberId)
+				}
 			}
 		}
 	}
@@ -242,12 +285,21 @@ function buildSideBar(items) {
                     <summary>${entry.label}</summary>
                     <nav>${res}</nav>
                 </details>`
-		} else {
-			// Still need to create the path for loading markdown content
+		} else if (entry.type === 'html') {
+            // Handle HTML type items
+            // If folder is missing, use empty string instead of 'html'
+            // This ensures the path is constructed correctly in loadHtmlContent
+            const folder = entry.doc.folder || ''
+            const file = entry.doc.file
+            
+            strHtml += `
+                <a class="sidebar-item" data-type="html" data-item-id="${entry.id}" data-doc-folder="${folder}" data-doc-file="${file}" onclick="onLoadItem(event)" href="#${entry.id}">${entry.label}</a>`
+        } else {
+			// Handle markdown type items
 			const exPath = `${entry.ex.folder}/${entry.ex.files[0].split('.')[0]}`
 			
 			strHtml += `
-                <a class="sidebar-item" data-ex-id="${entry.id}" data-ex-path="${exPath}" onclick="onLoadItem(event, ${entry.id})" href="#${entry.id}">${entry.label}</a>`
+                <a class="sidebar-item" data-type="ex-markdown" data-item-id="${entry.id}" data-ex-id="${entry.id}" data-ex-path="${exPath}" onclick="onLoadItem(event, ${entry.id})" href="#${entry.id}">${entry.label}</a>`
 		}
 	})
 	return strHtml
@@ -259,6 +311,49 @@ window.onLoadItem = function (ev, id) {
 
 	// Get the element that was clicked
 	const clickedEl = ev.currentTarget
+	const itemType = clickedEl.getAttribute('data-type')
+    const itemId = clickedEl.getAttribute('data-item-id')
+    
+    if (itemType === 'html') {
+        // For HTML items, load the HTML content
+        const folder = clickedEl.getAttribute('data-doc-folder')
+        const file = clickedEl.getAttribute('data-doc-file')
+        loadHtmlContent(folder, file)
+        
+        // Update active class
+        if (state.currentActiveItem) {
+            state.currentActiveItem.classList.remove('active')
+        }
+        clickedEl.classList.add('active')
+        state.currentActiveItem = clickedEl
+        
+        // Update browser history with ID
+        const historyState = { type: 'html', id: itemId, folder, file }
+        const url = `#${itemId}`
+        history.pushState(historyState, '', url)
+        
+        // Disable all buttons for HTML content
+        const runButton = document.getElementById('run-button')
+        const testButton = document.getElementById('test-button')
+        const copyButton = document.getElementById('copy-button')
+        runButton.disabled = true
+        testButton.disabled = true
+        copyButton.disabled = true
+        
+        // Open the parent details element if it exists
+        const parentDetails = clickedEl.closest('details')
+        if (parentDetails) {
+            parentDetails.open = true
+        }
+        
+        // Save the current item ID to settings
+        state.settings.lastEntryId = itemId
+        saveConfig(state.settings)
+        
+        return
+    }
+    
+    // For markdown items, proceed with the existing logic
 	const exPath = clickedEl.getAttribute('data-ex-path')
 
 	loadMarkdownContent(id)
@@ -319,6 +414,7 @@ function flattenToc(items) {
 		if (item.items) {
 			result = result.concat(flattenToc(item.items))
 		} else {
+            // Include all item types in the flattened TOC
 			result.push(item)
 		}
 	})
@@ -424,8 +520,8 @@ function updateActiveNavItem(id) {
 		state.currentActiveItem.classList.remove('active')
 	}
 
-	// Find and add active class to current item
-	const navItem = document.querySelector(`a.sidebar-item[data-ex-id="${id}"]`)
+	// Find and add active class to current item - check both data-ex-id and data-item-id
+	const navItem = document.querySelector(`a.sidebar-item[data-item-id="${id}"]`)
 	if (navItem) {
 		navItem.classList.add('active')
 		state.currentActiveItem = navItem
@@ -435,22 +531,99 @@ function updateActiveNavItem(id) {
 		if (parentDetails) {
 			parentDetails.open = true
 		}
-	}
-
-	// Update current exercise and button states
-	state.currentExercise = id
-	updateRunButton(id)
-	
-	// Auto-run the script if the autoRun setting is enabled
-	if (state.settings.autoRun) {
-		const exerciseItem = state.flattenedToc.find(item => item.id === id)
-		const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
 		
-		if (hasScript) {
-			// Use a small delay to ensure the UI is updated first
-			setTimeout(() => {
-				loadAndExecuteScript()
-			}, 100)
+		// Check if this is a markdown item
+		const itemType = navItem.getAttribute('data-type')
+		if (itemType === 'ex-markdown') {
+			// Update current exercise and button states
+			state.currentExercise = id
+			updateRunButton(id)
+			
+			// Auto-run the script if the autoRun setting is enabled
+			if (state.settings.autoRun) {
+				const exerciseItem = state.flattenedToc.find(item => item.id === id)
+				const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
+				
+				if (hasScript) {
+					// Use a small delay to ensure the UI is updated first
+					setTimeout(() => {
+						loadAndExecuteScript()
+					}, 100)
+				}
+			}
+		} else {
+			// For HTML items, disable all buttons
+			const runButton = document.getElementById('run-button')
+			const testButton = document.getElementById('test-button')
+			const copyButton = document.getElementById('copy-button')
+			runButton.disabled = true
+			testButton.disabled = true
+			copyButton.disabled = true
 		}
 	}
+}
+
+// Function to load HTML content
+async function loadHtmlContent(folder, file, showLoading = true) {
+    const contentElement = document.getElementById('markdown-content')
+    
+    // Show loading indicator if requested
+    if (showLoading) {
+        contentElement.innerHTML = '<p>Loading...</p>'
+        state.isLoading = true
+    }
+    
+    try {
+        // Construct the path to the HTML file
+        // Handle different folder scenarios
+        let basePath
+        if (folder === '.') {
+            // If folder is '.', use the html folder directly
+            basePath = '../../html/'
+        } else if (!folder || folder === 'html') {
+            // If folder is missing or explicitly 'html', use html folder directly
+            basePath = '../../html/'
+        } else {
+            // Otherwise, append folder to html path
+            basePath = `../../html/${folder}/`
+        }
+        
+        const htmlPath = `${basePath}${file}`
+        
+        const response = await fetch(htmlPath)
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load ${htmlPath}: ${response.status} ${response.statusText}`)
+        }
+        
+        const htmlContent = await response.text()
+        
+        // Create a container div to hold the HTML content
+        contentElement.innerHTML = `<div class="html-content">${htmlContent}</div>`
+        
+        // Extract any scripts from the HTML content and execute them
+        const container = contentElement.querySelector('.html-content')
+        const scripts = container.querySelectorAll('script')
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script')
+            
+            // Copy all attributes from the old script to the new one
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value)
+            })
+            
+            // Copy the content of the script
+            newScript.textContent = oldScript.textContent
+            
+            // Replace the old script with the new one
+            oldScript.parentNode.replaceChild(newScript, oldScript)
+        })
+        
+        state.isLoading = false
+    } catch (error) {
+        console.error('Error loading HTML content:', error)
+        contentElement.innerHTML = `<p>Error loading content: ${error.message}</p>`
+        state.lastError = error.message
+        state.isLoading = false
+    }
 }

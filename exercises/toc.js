@@ -1,5 +1,36 @@
 export default {
 	sidebar: [
+        {
+            label: 'Exercise Runner',
+            items: [
+                {
+                    label: 'Settings',
+                    type: 'html',
+                    id: 'settings',
+                    doc: {
+                        folder: '.',
+                        file: 'settings.html',
+                    }
+                },
+                {
+                    label: 'About',
+                    type: 'html',
+                    id: 'about',
+                    doc: {
+                        file: 'about.html'
+                    }
+                },
+                {
+                    label: 'Help',
+                    type: 'html',
+                    id: 'help',
+                    doc: {
+                        folder: 'help',
+                        file: 'index.html'
+                    }
+                }
+            ]
+        },
 		{
 			label: 'JS Basics',
 			items: [
