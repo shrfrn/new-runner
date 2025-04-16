@@ -190,81 +190,81 @@ async function sendScriptToServer() {
 
     // Get the first file from the files array (which should be the JS file)
     const scriptFile = exerciseItem.solution.files[0]
-    const scriptSrc = `../../Submissions/${exerciseItem.solution.folder}/${scriptFile}`
+    
+    // Create a URL object to properly resolve the path
+    const scriptUrl = new URL(`../../Submissions/${exerciseItem.solution.folder}/${scriptFile}`, window.location.href)
+    const scriptSrc = scriptUrl.href
 
-	// Get the test button to update its text
-	const testButton = document.getElementById('test-button')
-	const originalText = testButton.textContent
+    // Get the test button to update its text
+    const testButton = document.getElementById('test-button')
+    const originalText = testButton.textContent
 
-	try {
-		// Set loading state
-		state.isLoading = true
-		// Update button text to show submission is in progress
-		testButton.textContent = 'Submitting...'
-		// Fetch the script content
-		const response = await fetch(scriptSrc)
-		if (!response.ok) {
-			throw new Error(`Failed to load script: ${response.status} ${response.statusText}`)
-		}
+    try {
+        // Set loading state
+        state.isLoading = true
+        // Update button text to show submission is in progress
+        testButton.textContent = 'Submitting...'
 
-		// Get the script content as text
-		const scriptContent = await response.text()
+        // First verify the script exists
+        const scriptResponse = await fetch(scriptSrc)
+        if (!scriptResponse.ok) {
+            throw new Error(`Script not found: ${scriptSrc}`)
+        }
 
-		// Create a File object from the script content
-		const file = new File([scriptContent], scriptFile, { type: 'text/javascript' })
+        // Get the script content as text
+        const scriptContent = await scriptResponse.text()
 
-		// Create a FormData object and append the file and exerciseId
-		const formData = new FormData()
-		formData.append('file', file)
+        // Create a File object from the script content
+        const file = new File([scriptContent], scriptFile, { type: 'text/javascript' })
 
-		// Use the id property from the exercise item
-		formData.append('exerciseId', exerciseItem.id.toString())
+        // Create a FormData object and append the file and exerciseId
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('exerciseId', exerciseItem.id.toString())
 
-		// We'll use fetch to send the data directly
+        // Send the POST request using fetch and open the response in a new tab
+        const serverResponse = await fetch('http://localhost:3000/api/test', {
+            method: 'POST',
+            body: formData
+        })
 
-		// Send the POST request using fetch and open the response in a new tab
-		const serverResponse = await fetch('http://localhost:3000/api/test', {
-			method: 'POST',
-			body: formData
-		})
+        if (!serverResponse.ok) {
+            throw new Error(`Server error: ${serverResponse.status} ${serverResponse.statusText}`)
+        }
 
-		if (!serverResponse.ok) {
-			throw new Error(`Server error: ${serverResponse.status} ${serverResponse.statusText}`)
-		}
+        // Get the HTML response
+        const htmlReport = await serverResponse.text()
 
-		// Get the HTML response
-		const htmlReport = await serverResponse.text()
+        // Create a blob from the HTML response
+        const blob = new Blob([htmlReport], { type: 'text/html' })
 
-		// Create a blob from the HTML response
-		const blob = new Blob([htmlReport], { type: 'text/html' })
+        // Create a URL for the blob
+        const url = URL.createObjectURL(blob)
 
-		// Create a URL for the blob
-		const url = URL.createObjectURL(blob)
+        // Open the URL in a new tab
+        window.open(url, '_blank')
 
-		// Open the URL in a new tab
-		window.open(url, '_blank')
+        // Clean up the URL object after the tab is opened
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
 
-		// Clean up the URL object after the tab is opened
-		setTimeout(() => URL.revokeObjectURL(url), 1000)
+        // Update button text to show submission was successful
+        testButton.textContent = 'Submitted!'
 
-		// Update button text to show submission was successful
-		testButton.textContent = 'Submitted!'
-
-		// Reset the button text after a short delay
-		setTimeout(() => {
-			testButton.textContent = originalText
-			state.isLoading = false
-		}, 2000)
-	} catch (error) {
+        // Reset the button text after a short delay
+        setTimeout(() => {
+            testButton.textContent = originalText
+            state.isLoading = false
+        }, 2000)
+    } catch (error) {
         console.clear()
-		console.log(`%cScript not found Submissions/${exerciseItem.solution.folder}/${scriptFile}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
+        console.log(`%c${error.message}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
 
-		// Record the error in state
-		state.lastError = error.message
-		
-		// Reset the button text in case of error
-		testButton.textContent = originalText
-		state.isLoading = false
+        // Record the error in state
+        state.lastError = error.message
+        
+        // Reset the button text in case of error
+        testButton.textContent = originalText
+        state.isLoading = false
     }
 }
 
@@ -425,7 +425,7 @@ function flattenToc(items) {
 // Function to load and execute a JavaScript file
 function loadAndExecuteScript() {
 	// Clear the console first
-	console.clear()
+	// console.clear()
 
 	// Use the flattened TOC from state
 	const exerciseItem = state.flattenedToc.find(item => item.id === state.currentExercise)
