@@ -20,28 +20,18 @@ export function buildSidebar(items) {
                     <summary>${entry.label}</summary>
                     <nav>${res}</nav>
                 </details>`
-		} else if (entry.type === 'html') {
-			const folder = entry.doc.folder || ''
-			const file = entry.doc.file
+		} else if (entry.content) {
+			const folder = entry.content.folder || ''
+			const file = entry.content.files[0]
+			const isHtml = entry.type === 'html'
 
 			html += `<a 
                         class="sidebar-item" 
-                        data-type="html" 
+                        data-type="${entry.type}" 
                         data-item-id="${entry.id}" 
-                        data-doc-folder="${folder}" 
-                        data-doc-file="${file}" 
-                        onclick="onLoadItem(event)" 
-                        href="#${entry.id}">${entry.label}</a>`
-		} else {
-			const exPath = `${entry.ex.folder}/${entry.ex.files[0].split('.')[0]}`
-
-			html += `<a 
-                        class="sidebar-item" 
-                        data-type="ex-markdown" 
-                        data-item-id="${entry.id}" 
-                        data-ex-id="${entry.id}" 
-                        data-ex-path="${exPath}" 
-                        onclick="onLoadItem(event, ${entry.id})" 
+                        data-content-folder="${folder}" 
+                        data-content-file="${file}" 
+                        onclick="onLoadItem(event${isHtml ? '' : ', ' + entry.id})" 
                         href="#${entry.id}">${entry.label}</a>`
 		}
 	})
@@ -77,11 +67,7 @@ function updateSidebar(selector, currentActiveItem, includeItemType = false) {
 	return result
 }
 
-export function updateActiveMarkdownItem(id, currentActiveItem) {
+export function updateActiveSidebarItem(id, currentActiveItem) {
 	return updateSidebar(`a.sidebar-item[data-item-id="${id}"]`, currentActiveItem, true)
-}
-
-export function updateActiveHtmlItem(folder, file, currentActiveItem) {
-	return updateSidebar(`a.sidebar-item[data-type="html"][data-doc-folder="${folder}"][data-doc-file="${file}"]`, currentActiveItem)
 }
 

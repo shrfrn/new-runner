@@ -4,7 +4,7 @@ import { loadMarkdownContent, loadHtmlContent } from './content-loader.js'
 import { loadAndExecuteScript } from './script-runner.js'
 import { sendScriptToServer } from './test-submission.js'
 import { setupButtons, updateRunButton, copyExerciseAsComments, disableAllButtons } from './ui.js'
-import { flattenToc, renderSidebar, updateActiveMarkdownItem, updateActiveHtmlItem } from './sidebar.js'
+import { flattenToc, renderSidebar, updateActiveSidebarItem } from './sidebar.js'
 import { setupPopstateListener, handleInitialRoute, pushHistoryState } from './router.js'
 
 const state = {
@@ -45,50 +45,53 @@ function setupEventHandlers() {
 	window.onLoadItem = onLoadItem
 }
 
-function loadHtml(folder, file) {
-	loadHtmlContent(folder, file)
-	
-	const result = updateActiveHtmlItem(folder, file, state.currentActiveItem)
-	state.currentActiveItem = result.currentActiveItem
-	
-	disableAllButtons()
+function loadItem(id) {
+	const item = state.flattenedToc.find(i => i.id === id)
+	if (!item) return
+
+	if (item.type === 'html') {
+		const folder = item.content.folder || ''
+		const file = item.content.files[0]
+		loadHtmlContent(folder, file)
+		
+		const result = updateActiveSidebarItem(id, state.currentActiveItem)
+		state.currentActiveItem = result.currentActiveItem
+		
+		disableAllButtons()
+	} else if (item.type === 'ex-markdown') {
+		loadMarkdownContent(id, state.flattenedToc, false)
+		updateActiveItem(id)
+		
+		state.currentExercise = id
+		updateRunButton(id, state.flattenedToc)
+	}
 }
 
 function setupRouting() {
-	function loadMarkdown(id) {
-		loadMarkdownContent(id, state.flattenedToc, false)
-		updateActiveItem(id)
-	}
-
-	setupPopstateListener(loadHtml, loadMarkdown)
-	handleInitialRoute(state.settings, loadMarkdown)
+	setupPopstateListener(loadItem)
+	handleInitialRoute(state.settings, loadItem)
 }
 
 function onLoadItem(ev, id) {
 	ev.preventDefault()
 
 	const clickedEl = ev.currentTarget
-	const itemType = clickedEl.getAttribute('data-type')
 	const itemId = clickedEl.getAttribute('data-item-id')
 
-	if (itemType === 'html') handleHtmlItem(clickedEl, itemId)
-	else if (itemType === 'ex-markdown') handleMarkdownItem(id)
+	handleItem(id || itemId)
 }
 
-function handleHtmlItem(clickedEl, itemId) {
-	const folder = clickedEl.getAttribute('data-doc-folder')
-	const file = clickedEl.getAttribute('data-doc-file')
+function handleItem(id) {
+	loadItem(id)
 
-	loadHtml(folder, file)
-
-	pushHistoryState('html', itemId, folder, file)
+	pushHistoryState(id)
 	
-	state.settings.lastEntryId = itemId
+	state.settings.lastEntryId = id
 	saveConfig(state.settings)
 }
 
 function updateActiveItem(id) {
-	const result = updateActiveMarkdownItem(id, state.currentActiveItem)
+	const result = updateActiveSidebarItem(id, state.currentActiveItem)
 	state.currentActiveItem = result.currentActiveItem
 
 	if (result.itemType === 'ex-markdown' && state.settings.autoRun) {
@@ -99,17 +102,4 @@ function updateActiveItem(id) {
 			setTimeout(() => loadAndExecuteScript(state.currentExercise, state.flattenedToc), 100)
 		}
 	}
-}
-
-function handleMarkdownItem(id) {
-	loadMarkdownContent(id, state.flattenedToc)
-	updateActiveItem(id)
-
-	pushHistoryState('markdown', id)
-
-	state.currentExercise = id
-	updateRunButton(id, state.flattenedToc)
-
-	state.settings.lastEntryId = id
-	saveConfig(state.settings)
 }

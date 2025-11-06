@@ -8,11 +8,11 @@ export async function loadMarkdownContent(id, flattenedToc, showLoading = true) 
 	try {
 		const exerciseItem = flattenedToc.find(item => item.id === id)
 
-		if (!exerciseItem?.ex?.folder || !exerciseItem.ex.files?.length) {
+		if (!exerciseItem?.content?.folder || !exerciseItem.content.files?.length) {
 			throw new Error(`Exercise not found or missing required properties for ID: ${id}`)
 		}
 
-		const { folder, files } = exerciseItem.ex
+		const { folder, files } = exerciseItem.content
 		const mdFile = files[0]
 		const mdPath = `../../exercises/${folder}/${mdFile}`
 

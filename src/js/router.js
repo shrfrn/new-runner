@@ -1,12 +1,7 @@
-export function setupPopstateListener(onHtmlNavigation, onMarkdownNavigation) {
+export function setupPopstateListener(onNavigation) {
 	window.addEventListener('popstate', event => {
-		if (!event.state) return
-
-		if (event.state.type === 'html') {
-			onHtmlNavigation(event.state.folder, event.state.file)
-		} else if (event.state.id) {
-			onMarkdownNavigation(event.state.id)
-		}
+		if (!event.state?.id) return
+		onNavigation(event.state.id)
 	})
 }
 
@@ -40,12 +35,7 @@ function handleLastEntryRoute(settings, onSidebarItemClick) {
 	}
 }
 
-export function pushHistoryState(type, id, folder, file) {
-	const historyState = type === 'html' 
-		? { type, id, folder, file }
-		: { id }
-
-	const url = `#${id}`
-	history.pushState(historyState, '', url)
+export function pushHistoryState(id) {
+	history.pushState({ id }, '', `#${id}`)
 }
 
