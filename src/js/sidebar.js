@@ -56,19 +56,32 @@ export function renderSidebar(items) {
 	sidebar.innerHTML = sidebarHtml
 }
 
-export function updateActiveNavItem(id, currentActiveItem) {
+function updateSidebar(selector, currentActiveItem, includeItemType = false) {
 	if (currentActiveItem) currentActiveItem.classList.remove('active')
 
-	const navItem = document.querySelector(`a.sidebar-item[data-item-id="${id}"]`)
-	if (!navItem) return { currentActiveItem: null, itemType: null }
+	const navItem = document.querySelector(selector)
+	if (!navItem) {
+		return includeItemType 
+			? { currentActiveItem: null, itemType: null }
+			: { currentActiveItem: null }
+	}
 
 	navItem.classList.add('active')
 
 	const parentDetails = navItem.closest('details')
 	if (parentDetails) parentDetails.open = true
 
-	const itemType = navItem.getAttribute('data-type')
+	const result = { currentActiveItem: navItem }
+	if (includeItemType) result.itemType = navItem.getAttribute('data-type')
 
-	return { currentActiveItem: navItem, itemType }
+	return result
+}
+
+export function updateActiveMarkdownItem(id, currentActiveItem) {
+	return updateSidebar(`a.sidebar-item[data-item-id="${id}"]`, currentActiveItem, true)
+}
+
+export function updateActiveHtmlItem(folder, file, currentActiveItem) {
+	return updateSidebar(`a.sidebar-item[data-type="html"][data-doc-folder="${folder}"][data-doc-file="${file}"]`, currentActiveItem)
 }
 

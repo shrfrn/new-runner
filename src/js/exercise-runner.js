@@ -4,7 +4,7 @@ import { loadMarkdownContent, loadHtmlContent } from './content-loader.js'
 import { loadAndExecuteScript } from './script-runner.js'
 import { sendScriptToServer } from './test-submission.js'
 import { setupButtons, updateRunButton, copyExerciseAsComments, disableAllButtons } from './ui.js'
-import { flattenToc, renderSidebar, updateActiveNavItem } from './sidebar.js'
+import { flattenToc, renderSidebar, updateActiveMarkdownItem, updateActiveHtmlItem } from './sidebar.js'
 import { setupPopstateListener, handleInitialRoute, pushHistoryState } from './router.js'
 
 const state = {
@@ -45,19 +45,23 @@ function setupEventHandlers() {
 	window.onLoadItem = onLoadItem
 }
 
-function setupRouting() {
-	setupPopstateListener(
-		(folder, file) => loadHtmlContent(folder, file),
-		(id, addToHistory) => {
-			loadMarkdownContent(id, state.flattenedToc, false)
-			updateActiveItem(id)
-		}
-	)
+function loadHtml(folder, file) {
+	loadHtmlContent(folder, file)
+	
+	const result = updateActiveHtmlItem(folder, file, state.currentActiveItem)
+	state.currentActiveItem = result.currentActiveItem
+	
+	disableAllButtons()
+}
 
-	handleInitialRoute(state.settings, (id) => {
+function setupRouting() {
+	function loadMarkdown(id) {
 		loadMarkdownContent(id, state.flattenedToc, false)
 		updateActiveItem(id)
-	})
+	}
+
+	setupPopstateListener(loadHtml, loadMarkdown)
+	handleInitialRoute(state.settings, loadMarkdown)
 }
 
 function onLoadItem(ev, id) {
@@ -75,27 +79,16 @@ function handleHtmlItem(clickedEl, itemId) {
 	const folder = clickedEl.getAttribute('data-doc-folder')
 	const file = clickedEl.getAttribute('data-doc-file')
 
-	loadHtmlContent(folder, file)
-
-	if (state.currentActiveItem) {
-		state.currentActiveItem.classList.remove('active')
-	}
-
-	clickedEl.classList.add('active')
-	state.currentActiveItem = clickedEl
+	loadHtml(folder, file)
 
 	pushHistoryState('html', itemId, folder, file)
-	disableAllButtons()
-
-	const parentDetails = clickedEl.closest('details')
-	if (parentDetails) parentDetails.open = true
-
+	
 	state.settings.lastEntryId = itemId
 	saveConfig(state.settings)
 }
 
 function updateActiveItem(id) {
-	const result = updateActiveNavItem(id, state.currentActiveItem)
+	const result = updateActiveMarkdownItem(id, state.currentActiveItem)
 	state.currentActiveItem = result.currentActiveItem
 
 	if (result.itemType === 'ex-markdown' && state.settings.autoRun) {

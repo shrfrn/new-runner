@@ -3,13 +3,9 @@ export function setupPopstateListener(onHtmlNavigation, onMarkdownNavigation) {
 		if (!event.state) return
 
 		if (event.state.type === 'html') {
-			const htmlItem = document.querySelector(`a.sidebar-item[data-type="html"][data-item-id="${event.state.id}"]`)
-
-			if (htmlItem) htmlItem.click()
-			else onHtmlNavigation(event.state.folder, event.state.file)
-
+			onHtmlNavigation(event.state.folder, event.state.file)
 		} else if (event.state.id) {
-			onMarkdownNavigation(event.state.id, false)
+			onMarkdownNavigation(event.state.id)
 		}
 	})
 }
@@ -23,32 +19,7 @@ export function handleInitialRoute(settings, onSidebarItemClick) {
 
 function handleHashRoute(hash) {
 	const sidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${hash}"]`)
-
-	if (sidebarItem) {
-		sidebarItem.click()
-		return
-	}
-
-	if (hash.includes('/')) return handleLegacyPathFormat(hash)
-	handleNumericId(hash)
-}
-
-function handleLegacyPathFormat(hash) {
-	const pathParts = hash.split('/')
-	const file = pathParts.pop()
-	const folder = pathParts.join('/')
-
-	const htmlItem = document.querySelector(`a.sidebar-item[data-type="html"][data-doc-folder="${folder}"][data-doc-file="${file}"]`)
-	if (htmlItem) htmlItem.click()
-}
-
-function handleNumericId(hash, onMarkdownLoad, onActiveItemUpdate) {
-	const id = parseInt(hash, 10)
-
-	if (!isNaN(id) && onMarkdownLoad && onActiveItemUpdate) {
-		onMarkdownLoad(id, false)
-		onActiveItemUpdate(id)
-	}
+	if (sidebarItem) sidebarItem.click()
 }
 
 function handleLastEntryRoute(settings, onSidebarItemClick) {
