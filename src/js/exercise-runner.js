@@ -192,7 +192,7 @@ async function sendScriptToServer() {
     const scriptFile = exerciseItem.solution.files[0]
     
     // Create a URL object to properly resolve the path
-    const scriptUrl = new URL(`../../Submissions/${exerciseItem.solution.folder}/${scriptFile}`, window.location.href)
+    const scriptUrl = new URL(`../../submissions/${exerciseItem.solution.folder}/${scriptFile}`, window.location.href)
     const scriptSrc = scriptUrl.href
 
     // Get the test button to update its text
@@ -221,13 +221,12 @@ async function sendScriptToServer() {
         const formData = new FormData()
         formData.append('file', file)
         formData.append('exerciseId', exerciseItem.id.toString())
-
+        
         // Send the POST request using fetch and open the response in a new tab
         const serverResponse = await fetch('http://localhost:3000/api/test', {
             method: 'POST',
             body: formData
         })
-
         if (!serverResponse.ok) {
             throw new Error(`Server error: ${serverResponse.status} ${serverResponse.statusText}`)
         }
@@ -256,7 +255,7 @@ async function sendScriptToServer() {
             state.isLoading = false
         }, 2000)
     } catch (error) {
-        console.clear()
+        // console.clear()
         console.log(`%c${error.message}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
 
         // Record the error in state
@@ -442,7 +441,7 @@ function loadAndExecuteScript() {
 
 	// Get or create the script element
 	let script = document.getElementById('exercise-script')
-	const scriptSrc = `../../Submissions/${exerciseItem.solution.folder}/${scriptFile}`
+	const scriptSrc = `../../submissions/${exerciseItem.solution.folder}/${scriptFile}`
 
 	if (script) {
 		// If the script element already exists, we need to:
@@ -460,7 +459,7 @@ function loadAndExecuteScript() {
 	// Add error handling for the script
 	script.onerror = () => {
 		console.clear()
-		const errorMsg = `Script not found: \nSubmissions/${exerciseItem.solution.folder}/${scriptFile}`
+		const errorMsg = `Script not found: \nsubmissions/${exerciseItem.solution.folder}/${scriptFile}`
 		console.log(`%c${errorMsg}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
 		state.lastError = errorMsg
 	}
