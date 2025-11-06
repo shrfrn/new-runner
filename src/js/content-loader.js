@@ -12,9 +12,9 @@ export async function loadMarkdownContent(id, flattenedToc, showLoading = true) 
 			throw new Error(`Exercise not found or missing required properties for ID: ${id}`)
 		}
 
-		const { folder, files } = exerciseItem.content
-		const mdFile = files[0]
-		const mdPath = `../../exercises/${folder}/${mdFile}`
+	const { folder, files } = exerciseItem.content
+	const mdFile = files[0]
+	const mdPath = `content/${folder}/${mdFile}`
 
 		const response = await fetch(mdPath)
 
@@ -43,11 +43,11 @@ export async function loadHtmlContent(folder, file, showLoading = true) {
 		let basePath
 
 		if (folder === '.') {
-			basePath = '../../html/'
+			basePath = 'content/html/'
 		} else if (!folder || folder === 'html') {
-			basePath = '../../html/'
+			basePath = 'content/html/'
 		} else {
-			basePath = `../../html/${folder}/`
+			basePath = `content/html/${folder}/`
 		}
 
 		const htmlPath = `${basePath}${file}`

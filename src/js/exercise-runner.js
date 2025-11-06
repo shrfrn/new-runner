@@ -1,4 +1,4 @@
-import toc from '../../exercises/toc.js'
+import toc from '../content/toc.js'
 import { loadConfig, saveConfig } from './services/config.service.js'
 import { loadMarkdownContent, loadHtmlContent } from './content-loader.js'
 import { loadAndExecuteScript } from './script-runner.js'
