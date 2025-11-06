@@ -8,21 +8,21 @@ export function loadAndExecuteScript(currentExercise, flattenedToc) {
 
 	const scriptFile = exerciseItem.solution.files[0]
 	const scriptSrc = `../../submissions/${exerciseItem.solution.folder}/${scriptFile}`
-	let script = document.getElementById('exercise-script')
+	let elScript = document.getElementById('exercise-script')
 
-	if (script) script.remove()
+	if (elScript) elScript.remove()
 
-	script = document.createElement('script')
-	script.id = 'exercise-script'
-	script.src = scriptSrc
+	elScript = document.createElement('script')
+	elScript.id = 'exercise-script'
+	elScript.src = scriptSrc
 
-	script.onerror = () => {
+	elScript.onerror = () => {
 		console.clear()
 		const errorMsg = `Script not found: \nsubmissions/${exerciseItem.solution.folder}/${scriptFile}`
 		console.log(`%c${errorMsg}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
 	}
 
-	document.body.appendChild(script)
+	document.body.appendChild(elScript)
 
 	return { success: true }
 }

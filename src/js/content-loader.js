@@ -1,9 +1,9 @@
 import md from './markdown-it-wrapper.js'
 
 export async function loadMarkdownContent(id, flattenedToc, showLoading = true) {
-	const contentElement = document.getElementById('markdown-content')
+	const elContent = document.getElementById('markdown-content')
 
-	if (showLoading) contentElement.innerHTML = '<p>Loading...</p>'
+	if (showLoading) elContent.innerHTML = '<p>Loading...</p>'
 
 	try {
 		const exerciseItem = flattenedToc.find(item => item.id === id)
@@ -23,21 +23,21 @@ export async function loadMarkdownContent(id, flattenedToc, showLoading = true) 
 		}
 
 		const mdContent = await response.text()
-		contentElement.innerHTML = md.render(mdContent)
+		elContent.innerHTML = md.render(mdContent)
 
 		return { success: true }
 	} catch (error) {
 		console.error('Error loading markdown content:', error)
-		contentElement.innerHTML = `<p>Error loading content: ${error.message}</p>`
+		elContent.innerHTML = `<p>Error loading content: ${error.message}</p>`
 		
 		return { success: false, error: error.message }
 	}
 }
 
 export async function loadHtmlContent(folder, file, showLoading = true) {
-	const contentElement = document.getElementById('markdown-content')
+	const elContent = document.getElementById('markdown-content')
 
-	if (showLoading) contentElement.innerHTML = '<p>Loading...</p>'
+	if (showLoading) elContent.innerHTML = '<p>Loading...</p>'
 
 	try {
 		let basePath
@@ -58,25 +58,25 @@ export async function loadHtmlContent(folder, file, showLoading = true) {
 		}
 
 		const htmlContent = await response.text()
-		contentElement.innerHTML = `<div class="html-content">${htmlContent}</div>`
+		elContent.innerHTML = `<div class="html-content">${htmlContent}</div>`
 
-		const container = contentElement.querySelector('.html-content')
-		const scripts = container.querySelectorAll('script')
+		const elContainer = elContent.querySelector('.html-content')
+		const elScripts = elContainer.querySelectorAll('script')
 
-		scripts.forEach(oldScript => {
-			const newScript = document.createElement('script')
+		elScripts.forEach(elOldScript => {
+			const elNewScript = document.createElement('script')
 
-			Array.from(oldScript.attributes)
-                .forEach(attr => newScript.setAttribute(attr.name, attr.value))
+			Array.from(elOldScript.attributes)
+                .forEach(attr => elNewScript.setAttribute(attr.name, attr.value))
 
-			newScript.textContent = oldScript.textContent
-			oldScript.parentNode.replaceChild(newScript, oldScript)
+			elNewScript.textContent = elOldScript.textContent
+			elOldScript.parentNode.replaceChild(elNewScript, elOldScript)
 		})
 
 		return { success: true }
 	} catch (error) {
 		console.error('Error loading HTML content:', error)
-		contentElement.innerHTML = `<p>Error loading content: ${error.message}</p>`
+		elContent.innerHTML = `<p>Error loading content: ${error.message}</p>`
 		
 		return { success: false, error: error.message }
 	}

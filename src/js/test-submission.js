@@ -23,11 +23,11 @@ export async function sendScriptToServer(currentExercise, flattenedToc) {
 	const scriptUrl = new URL(`../../submissions/${exerciseItem.solution.folder}/${scriptFile}`, window.location.href)
 	const scriptSrc = scriptUrl.href
 
-	const testButton = document.getElementById('test-button')
-	const originalText = testButton.textContent
+	const elBtnTest = document.getElementById('test-button')
+	const originalText = elBtnTest.textContent
 
 	try {
-		testButton.textContent = 'Submitting...'
+		elBtnTest.textContent = 'Submitting...'
 
 		const scriptResponse = await fetch(scriptSrc)
 
@@ -50,13 +50,13 @@ export async function sendScriptToServer(currentExercise, flattenedToc) {
 
 		setTimeout(() => URL.revokeObjectURL(url), 1000)
 
-		testButton.textContent = 'Submitted!'
-		setTimeout(() => testButton.textContent = originalText, BUTTON_RESET_DELAY_MS)
+		elBtnTest.textContent = 'Submitted!'
+		setTimeout(() => elBtnTest.textContent = originalText, BUTTON_RESET_DELAY_MS)
 
 		return { success: true }
 	} catch (error) {
 		console.log(`%c${error.message}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
-		testButton.textContent = originalText
+		elBtnTest.textContent = originalText
 
 		return { success: false, error: error.message }
 	}

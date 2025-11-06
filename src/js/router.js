@@ -13,8 +13,8 @@ export function handleInitialRoute(settings, onSidebarItemClick) {
 }
 
 function handleHashRoute(hash) {
-	const sidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${hash}"]`)
-	if (sidebarItem) sidebarItem.click()
+	const elSidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${hash}"]`)
+	if (elSidebarItem) elSidebarItem.click()
 }
 
 function handleLastEntryRoute(settings, onSidebarItemClick) {
@@ -22,10 +22,10 @@ function handleLastEntryRoute(settings, onSidebarItemClick) {
 
 	if (!lastEntryId) return
 
-	const sidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${lastEntryId}"]`)
+	const elSidebarItem = document.querySelector(`a.sidebar-item[data-item-id="${lastEntryId}"]`)
 
-	if (sidebarItem) {
-		sidebarItem.click()
+	if (elSidebarItem) {
+		elSidebarItem.click()
 		return
 	}
 

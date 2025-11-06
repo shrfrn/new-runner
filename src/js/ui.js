@@ -19,30 +19,30 @@ export function updateRunButton(id, flattenedToc) {
 
 	setButtonState(hasScript, hasScript, !!exerciseItem)
 
-	const runButton = document.getElementById('run-button')
-	const testButton = document.getElementById('test-button')
-	const copyButton = document.getElementById('copy-button')
+	const elBtnRun = document.getElementById('run-button')
+	const elBtnTest = document.getElementById('test-button')
+	const elBtnCopy = document.getElementById('copy-button')
 
 	if (hasScript) {
 		const scriptFile = exerciseItem.solution.files[0]
-		runButton.title = `Run ${exerciseItem.solution.folder}/${scriptFile}`
-		testButton.title = `Test ${exerciseItem.solution.folder}/${scriptFile}`
+		elBtnRun.title = `Run ${exerciseItem.solution.folder}/${scriptFile}`
+		elBtnTest.title = `Test ${exerciseItem.solution.folder}/${scriptFile}`
 	} else {
-		runButton.title = `No script available for this exercise`
-		testButton.title = `No script available for this exercise`
+		elBtnRun.title = `No script available for this exercise`
+		elBtnTest.title = `No script available for this exercise`
 	}
 
 	if (exerciseItem) {
-		copyButton.title = `Copy exercise text as comments`
+		elBtnCopy.title = `Copy exercise text as comments`
 	} else {
-		copyButton.title = `No exercise selected`
+		elBtnCopy.title = `No exercise selected`
 	}
 }
 
 export async function copyExerciseAsComments() {
 	try {
-		const contentElement = document.getElementById('markdown-content')
-		let plainText = contentElement.innerText
+		const elContent = document.getElementById('markdown-content')
+		let plainText = elContent.innerText
 
 		plainText = plainText.trim()
 
@@ -52,11 +52,11 @@ export async function copyExerciseAsComments() {
 
 		await navigator.clipboard.writeText(commentedText)
 
-		const copyButton = document.getElementById('copy-button')
-		const originalText = copyButton.textContent
+		const elBtnCopy = document.getElementById('copy-button')
+		const originalText = elBtnCopy.textContent
 
-		copyButton.textContent = 'Copied!'
-		setTimeout(() => copyButton.textContent = originalText, 2000)
+		elBtnCopy.textContent = 'Copied!'
+		setTimeout(() => elBtnCopy.textContent = originalText, 2000)
 
 	} catch (error) {
 		console.error('Error copying exercise text:', error)
@@ -65,12 +65,12 @@ export async function copyExerciseAsComments() {
 }
 
 export function setupButtons(onRun, onTest, onCopy) {
-	const runButton = document.getElementById('run-button')
-	const testButton = document.getElementById('test-button')
-	const copyButton = document.getElementById('copy-button')
+	const elBtnRun = document.getElementById('run-button')
+	const elBtnTest = document.getElementById('test-button')
+	const elBtnCopy = document.getElementById('copy-button')
 
-	runButton.addEventListener('click', onRun)
-	testButton.addEventListener('click', onTest)
-	copyButton.addEventListener('click', onCopy)
+	elBtnRun.addEventListener('click', onRun)
+	elBtnTest.addEventListener('click', onTest)
+	elBtnCopy.addEventListener('click', onCopy)
 }
 

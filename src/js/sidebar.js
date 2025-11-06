@@ -40,29 +40,29 @@ export function buildSidebar(items) {
 }
 
 export function renderSidebar(items) {
-	const sidebar = document.querySelector('.sidebar-items')
+	const elSidebar = document.querySelector('.sidebar-items')
 	const sidebarHtml = buildSidebar(items)
 
-	sidebar.innerHTML = sidebarHtml
+	elSidebar.innerHTML = sidebarHtml
 }
 
 function updateSidebar(selector, currentActiveItem, includeItemType = false) {
 	if (currentActiveItem) currentActiveItem.classList.remove('active')
 
-	const navItem = document.querySelector(selector)
-	if (!navItem) {
+	const elNavItem = document.querySelector(selector)
+	if (!elNavItem) {
 		return includeItemType 
 			? { currentActiveItem: null, itemType: null }
 			: { currentActiveItem: null }
 	}
 
-	navItem.classList.add('active')
+	elNavItem.classList.add('active')
 
-	const parentDetails = navItem.closest('details')
+	const parentDetails = elNavItem.closest('details')
 	if (parentDetails) parentDetails.open = true
 
-	const result = { currentActiveItem: navItem }
-	if (includeItemType) result.itemType = navItem.getAttribute('data-type')
+	const result = { currentActiveItem: elNavItem }
+	if (includeItemType) result.itemType = elNavItem.getAttribute('data-type')
 
 	return result
 }
