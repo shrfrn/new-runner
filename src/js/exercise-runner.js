@@ -137,6 +137,21 @@ function setupCopyButton() {
 	})
 }
 
+// Button state management helpers
+function setButtonState(runEnabled, testEnabled, copyEnabled) {
+	document.getElementById('run-button').disabled = !runEnabled
+	document.getElementById('test-button').disabled = !testEnabled
+	document.getElementById('copy-button').disabled = !copyEnabled
+}
+
+function enableAllButtons() {
+	setButtonState(true, true, true)
+}
+
+function disableAllButtons() {
+	setButtonState(false, false, false)
+}
+
 // Function to copy the exercise text as comments to the clipboard
 async function copyExerciseAsComments() {
 	try {
@@ -332,12 +347,7 @@ window.onLoadItem = function (ev, id) {
         history.pushState(historyState, '', url)
         
         // Disable all buttons for HTML content
-        const runButton = document.getElementById('run-button')
-        const testButton = document.getElementById('test-button')
-        const copyButton = document.getElementById('copy-button')
-        runButton.disabled = true
-        testButton.disabled = true
-        copyButton.disabled = true
+        disableAllButtons()
         
         // Open the parent details element if it exists
         const parentDetails = clickedEl.closest('details')
@@ -374,20 +384,14 @@ window.onLoadItem = function (ev, id) {
 
 // Function to update the Run button state
 function updateRunButton(id) {
+	const exerciseItem = state.flattenedToc.find(item => item.id === id)
+	const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
+
+	setButtonState(hasScript, hasScript, !!exerciseItem)
+
 	const runButton = document.getElementById('run-button')
 	const testButton = document.getElementById('test-button')
 	const copyButton = document.getElementById('copy-button')
-
-	// Use the flattened TOC from state
-	const exerciseItem = state.flattenedToc.find(item => item.id === id)
-
-	// Enable/disable the Run button based on whether the solution property exists and has files
-	const hasScript = exerciseItem && exerciseItem.solution && exerciseItem.solution.files && exerciseItem.solution.files.length > 0
-	runButton.disabled = !hasScript
-	testButton.disabled = !hasScript
-
-	// Enable the Copy button if we have a valid exercise (regardless of script availability)
-	copyButton.disabled = !exerciseItem
 
 	if (hasScript) {
 		const scriptFile = exerciseItem.solution.files[0]
@@ -552,12 +556,7 @@ function updateActiveNavItem(id) {
 			}
 		} else {
 			// For HTML items, disable all buttons
-			const runButton = document.getElementById('run-button')
-			const testButton = document.getElementById('test-button')
-			const copyButton = document.getElementById('copy-button')
-			runButton.disabled = true
-			testButton.disabled = true
-			copyButton.disabled = true
+			disableAllButtons()
 		}
 	}
 }
