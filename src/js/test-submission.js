@@ -1,12 +1,17 @@
+import { getRunnerLog, clearRunnerLog } from './services/usage-tracking.service.js'
+
 const TEST_SERVER_URL = 'http://localhost:3000/api/test'
 const BUTTON_RESET_DELAY_MS = 2000
 
 function createSubmissionFormData(scriptContent, scriptFile, exerciseId) {
 	const file = new File([scriptContent], scriptFile, { type: 'text/javascript' })
 	const formData = new FormData()
-
+    
 	formData.append('file', file)
 	formData.append('exerciseId', exerciseId.toString())
+    
+    const runnerLog = getRunnerLog()
+	if (runnerLog.length) formData.append('runnerLog', JSON.stringify(runnerLog))
 
 	return formData
 }
@@ -43,16 +48,18 @@ export async function sendScriptToServer(currentExercise, flattenedToc) {
 		}
 
 		const htmlReport = await serverResponse.text()
+
 		const blob = new Blob([htmlReport], { type: 'text/html' })
 		const url = URL.createObjectURL(blob)
-
+        
 		window.open(url, '_blank')
-
+        
 		setTimeout(() => URL.revokeObjectURL(url), 1000)
-
+        
 		elBtnTest.textContent = 'Submitted!'
 		setTimeout(() => elBtnTest.textContent = originalText, BUTTON_RESET_DELAY_MS)
-
+        
+        clearRunnerLog()
 		return { success: true }
 	} catch (error) {
 		console.log(`%c${error.message}`, 'color: orange; font-weight: bold; font-size: 1.2em;')
