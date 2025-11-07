@@ -64,13 +64,68 @@ export async function copyExerciseAsComments() {
 	}
 }
 
-export function setupButtons(onRun, onTest, onCopy) {
-	const elBtnRun = document.getElementById('run-button')
-	const elBtnTest = document.getElementById('test-button')
-	const elBtnCopy = document.getElementById('copy-button')
+let authButton = null
+let authAnnouncement = null
+let authState = 'signed-out'
+let onNavigateAuth = null
+let onLogout = null
 
-	elBtnRun.addEventListener('click', onRun)
-	elBtnTest.addEventListener('click', onTest)
-	elBtnCopy.addEventListener('click', onCopy)
+export function setupButtons(onRun, onTest, onCopy, navigateAuth, logoutHandler) {
+	const runButton = document.getElementById('run-button')
+	const testButton = document.getElementById('test-button')
+	const copyButton = document.getElementById('copy-button')
+
+	if (runButton) runButton.addEventListener('click', onRun)
+	if (testButton) testButton.addEventListener('click', onTest)
+	if (copyButton) copyButton.addEventListener('click', onCopy)
+
+	authButton = document.querySelector('.auth-button')
+	authAnnouncement = document.querySelector('.auth-status-announcement')
+	onNavigateAuth = navigateAuth
+	onLogout = logoutHandler
+
+	if (authButton) authButton.addEventListener('click', onAuthButtonClick)
+}
+
+export function setAuthButtonToSignIn() {
+	if (!authButton) return
+
+	authState = 'signed-out'
+	authButton.dataset.authState = 'signed-out'
+	authButton.textContent = 'Sign In'
+	authButton.setAttribute('aria-label', 'Sign in to your account')
+	authButton.removeAttribute('aria-pressed')
+	announceAuthState('You are signed out')
+}
+
+export function setAuthButtonToSignOut(fullname) {
+	if (!authButton) return
+
+	authState = 'signed-in'
+	authButton.dataset.authState = 'signed-in'
+	authButton.textContent = 'Sign Out'
+	authButton.setAttribute('aria-label', fullname ? `Sign out ${fullname}` : 'Sign out')
+	authButton.setAttribute('aria-pressed', 'true')
+	announceAuthState(fullname ? `Signed in as ${fullname}` : 'Signed in')
+}
+
+function onAuthButtonClick(event) {
+	if (!authButton) return
+
+	if (authState === 'signed-in') {
+		if (onLogout) onLogout(event)
+		return
+	}
+
+	if (onNavigateAuth) onNavigateAuth(event)
+}
+
+function announceAuthState(message) {
+	if (!authAnnouncement) return
+
+	authAnnouncement.textContent = ''
+	setTimeout(() => {
+		authAnnouncement.textContent = message
+	}, 0)
 }
 

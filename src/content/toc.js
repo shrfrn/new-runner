@@ -4,6 +4,15 @@ export default {
             label: 'Exercise Runner',
             items: [
                 {
+                    label: 'Sign In',
+                    type: 'html',
+                    id: 'auth',
+                    content: {
+                        folder: '.',
+                        files: ['sign-in.html'],
+                    }
+                },
+                {
                     label: 'Settings',
                     type: 'html',
                     id: 'settings',

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In / Sign Up</title>
+</head>
+<body>
+    <div class="form-page" data-auth-root>
+        <h1 class="form-page-title">Account Access</h1>
+
+        <div class="form-tabs" role="tablist" aria-label="Authentication modes" data-auth-tabs>
+            <button
+                class="form-tab"
+                id="auth-tab-signin"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="auth-panel-signin"
+                data-tab="signin"
+                tabindex="0"
+            >Sign In</button>
+
+            <button
+                class="form-tab"
+                id="auth-tab-signup"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="auth-panel-signup"
+                data-tab="signup"
+                tabindex="-1"
+            >Sign Up</button>
+        </div>
+
+        <p class="form-feedback" aria-live="polite" data-auth-feedback></p>
+
+        <section
+            class="form-tabpanel"
+            id="auth-panel-signin"
+            role="tabpanel"
+            aria-labelledby="auth-tab-signin"
+            data-tabpanel="signin"
+            data-visible="true"
+        >
+            <form data-auth-form="signin" novalidate>
+                <div class="form-input-group">
+                    <label>
+                        Email
+                        <input type="email" name="username" autocomplete="email" required>
+                    </label>
+                </div>
+
+                <div class="form-input-group">
+                    <label>
+                        Password
+                        <input type="password" name="password" autocomplete="current-password" required>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="form-button" type="submit">Sign In</button>
+                </div>
+            </form>
+        </section>
+
+        <section
+            class="form-tabpanel"
+            id="auth-panel-signup"
+            role="tabpanel"
+            aria-labelledby="auth-tab-signup"
+            data-tabpanel="signup"
+            data-visible="false"
+        >
+            <form data-auth-form="signup" novalidate>
+                <div class="form-input-group">
+                    <label>
+                        Full Name
+                        <input type="text" name="fullname" autocomplete="name" required>
+                    </label>
+                </div>
+
+                <div class="form-input-group">
+                    <label>
+                        Email
+                        <input type="email" name="username" autocomplete="email" required>
+                    </label>
+                </div>
+
+                <div class="form-input-group">
+                    <label>
+                        Phone
+                        <input type="tel" name="phone" autocomplete="tel" required>
+                    </label>
+                </div>
+
+                <div class="form-input-group">
+                    <label>
+                        Password
+                        <input type="password" name="password" autocomplete="new-password" required>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="form-button" type="submit">Create Account</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</body>
+</html>
+

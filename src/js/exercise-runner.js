@@ -4,15 +4,26 @@ import { logExerciseRun } from './services/usage-tracking.service.js'
 import { loadMarkdownContent, loadHtmlContent } from './content-loader.js'
 import { loadAndExecuteScript } from './script-runner.js'
 import { sendScriptToServer } from './test-submission.js'
-import { setupButtons, updateRunButton, copyExerciseAsComments, disableAllButtons } from './ui.js'
+import {
+	setupButtons,
+	updateRunButton,
+	copyExerciseAsComments,
+	disableAllButtons,
+	setAuthButtonToSignIn,
+	setAuthButtonToSignOut,
+} from './ui.js'
 import { flattenToc, renderSidebar, updateActiveSidebarItem } from './sidebar.js'
 import { setupPopstateListener, handleInitialRoute, pushHistoryState } from './router.js'
+import { getLoggedinUser, logout } from './services/auth.service.js'
+import { initAuthPage } from './pages/auth-page.js'
 
 const state = {
 	currentActiveItem: null,
 	currentExercise: null,
 	flattenedToc: null,
 	settings: null,
+	currentUser: null,
+	authPage: null,
 }
 
 document.addEventListener('DOMContentLoaded', init)
@@ -20,6 +31,7 @@ document.addEventListener('DOMContentLoaded', init)
 function init() {
 	state.settings = loadConfig()
 	state.flattenedToc = flattenToc(toc.sidebar)
+	state.currentUser = getLoggedinUser()
 
 	renderSidebar(toc.sidebar)
 	setupEventHandlers()
@@ -44,23 +56,57 @@ function setupEventHandlers() {
 		await copyExerciseAsComments()
 	}
 
-	setupButtons(handleRun, handleTest, handleCopy)
+	async function onNavigateAuth(event) {
+		if (event) event.preventDefault()
+		await handleItem('auth')
+	}
+
+	async function onLogoutClick(event) {
+		if (event) event.preventDefault()
+
+		const didLogout = await logout()
+		if (!didLogout) {
+			console.error('Failed to log out user')
+			return
+		}
+
+		state.currentUser = null
+		setAuthButtonToSignIn()
+	}
+
+	setupButtons(handleRun, handleTest, handleCopy, onNavigateAuth, onLogoutClick)
+
+	if (state.currentUser) {
+		setAuthButtonToSignOut(getDisplayName(state.currentUser))
+	} else {
+		setAuthButtonToSignIn()
+	}
 	window.onLoadItem = onLoadItem
 }
 
-function loadItem(id) {
+async function loadItem(id) {
 	const item = state.flattenedToc.find(i => i.id === id)
 	if (!item) return
 
 	if (item.type === 'html') {
 		const folder = item.content.folder || ''
 		const file = item.content.files[0]
-		loadHtmlContent(folder, file)
+		const htmlResult = await loadHtmlContent(folder, file)
+
+		if (id === 'auth' && htmlResult?.container) {
+			state.authPage = initAuthPage({
+				container: htmlResult.container,
+				onSuccess: onAuthSuccess,
+			})
+		} else {
+			state.authPage = null
+		}
 		
-		const result = updateActiveSidebarItem(id, state.currentActiveItem)
-		state.currentActiveItem = result.currentActiveItem
+		const sidebarUpdate = updateActiveSidebarItem(id, state.currentActiveItem)
+		state.currentActiveItem = sidebarUpdate.currentActiveItem
 		
 		disableAllButtons()
+		state.currentExercise = null
 	} else if (item.type === 'ex-markdown') {
 		loadMarkdownContent(id, state.flattenedToc, false)
 		updateActiveItem(id)
@@ -75,17 +121,17 @@ function setupRouting() {
 	handleInitialRoute(state.settings, loadItem)
 }
 
-function onLoadItem(ev, id) {
+async function onLoadItem(ev, id) {
 	ev.preventDefault()
 
 	const clickedEl = ev.currentTarget
 	const itemId = clickedEl.getAttribute('data-item-id')
 
-	handleItem(id || itemId)
+	await handleItem(id || itemId)
 }
 
-function handleItem(id) {
-	loadItem(id)
+async function handleItem(id) {
+ 	await loadItem(id)
 
 	pushHistoryState(id)
 	
@@ -105,4 +151,22 @@ function updateActiveItem(id) {
 			setTimeout(() => loadAndExecuteScript(state.currentExercise, state.flattenedToc), 100)
 		}
 	}
+}
+
+function onAuthSuccess(user) {
+	if (!user) return
+
+	state.currentUser = user
+	setAuthButtonToSignOut(getDisplayName(user))
+}
+
+function getDisplayName(user) {
+	if (!user || typeof user !== 'object') return ''
+
+	if (user.fullname) return user.fullname
+	if (user.name) return user.name
+	if (user.email) return user.email
+	if (user.username) return user.username
+
+	return ''
 }

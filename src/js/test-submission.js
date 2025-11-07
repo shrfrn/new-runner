@@ -41,7 +41,7 @@ export async function sendScriptToServer(currentExercise, flattenedToc) {
 		const scriptContent = await scriptResponse.text()
 		const formData = createSubmissionFormData(scriptContent, scriptFile, exerciseItem.id)
 
-		const serverResponse = await fetch(TEST_SERVER_URL, { method: 'POST', body: formData })
+		const serverResponse = await fetch(TEST_SERVER_URL, { method: 'POST', body: formData, credentials: 'include' })
 
 		if (!serverResponse.ok) {
 			throw new Error(`Server error: ${serverResponse.status} ${serverResponse.statusText}`)

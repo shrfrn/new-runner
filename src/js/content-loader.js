@@ -61,6 +61,10 @@ export async function loadHtmlContent(folder, file, showLoading = true) {
 		elContent.innerHTML = `<div class="html-content">${htmlContent}</div>`
 
 		const elContainer = elContent.querySelector('.html-content')
+		if (!elContainer) {
+			return { success: false, error: 'Failed to render content container.', container: null }
+		}
+
 		const elScripts = elContainer.querySelectorAll('script')
 
 		elScripts.forEach(elOldScript => {
@@ -73,12 +77,12 @@ export async function loadHtmlContent(folder, file, showLoading = true) {
 			elOldScript.parentNode.replaceChild(elNewScript, elOldScript)
 		})
 
-		return { success: true }
+		return { success: true, container: elContainer }
 	} catch (error) {
 		console.error('Error loading HTML content:', error)
 		elContent.innerHTML = `<p>Error loading content: ${error.message}</p>`
 		
-		return { success: false, error: error.message }
+		return { success: false, error: error.message, container: null }
 	}
 }
 
