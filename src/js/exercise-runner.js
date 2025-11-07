@@ -1,5 +1,6 @@
 import toc from '../content/toc.js'
 import { loadConfig, saveConfig } from './services/config.service.js'
+import { logExerciseRun } from './services/usage-tracking.service.js'
 import { loadMarkdownContent, loadHtmlContent } from './content-loader.js'
 import { loadAndExecuteScript } from './script-runner.js'
 import { sendScriptToServer } from './test-submission.js'
@@ -29,6 +30,8 @@ function setupEventHandlers() {
 	function handleRun() {
 		if (!state.currentExercise) return
 		loadAndExecuteScript(state.currentExercise, state.flattenedToc)
+
+		logExerciseRun(state.currentExercise)
 	}
 
 	function handleTest() {
