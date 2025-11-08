@@ -48,6 +48,10 @@ function setupEventHandlers() {
 
 	function handleTest() {
 		if (!state.currentExercise) return
+		if (!state.currentUser) {
+			alert('You must sign in to run tests')
+			return
+		}
 		sendScriptToServer(state.currentExercise, state.flattenedToc)
 	}
 
