@@ -1,4 +1,5 @@
 import md from './markdown-it-wrapper.js'
+import * as http from './services/http.service.js'
 
 export async function loadMarkdownContent(id, flattenedToc, showLoading = true) {
 	const elContent = document.getElementById('markdown-content')
@@ -12,17 +13,11 @@ export async function loadMarkdownContent(id, flattenedToc, showLoading = true) 
 			throw new Error(`Exercise not found or missing required properties for ID: ${id}`)
 		}
 
-	const { folder, files } = exerciseItem.content
-	const mdFile = files[0]
-	const mdPath = `content/${folder}/${mdFile}`
+		const { folder, files } = exerciseItem.content
+		const mdFile = files[0]
+		const mdPath = `content/${folder}/${mdFile}`
 
-		const response = await fetch(mdPath)
-
-		if (!response.ok) {
-			throw new Error(`Failed to load ${mdPath}: ${response.status} ${response.statusText}`)
-		}
-
-		const mdContent = await response.text()
+		const mdContent = await http.get(mdPath)
 		elContent.innerHTML = md.render(mdContent)
 
 		return { success: true }
@@ -51,13 +46,8 @@ export async function loadHtmlContent(folder, file, showLoading = true) {
 		}
 
 		const htmlPath = `${basePath}${file}`
-		const response = await fetch(htmlPath)
-
-		if (!response.ok) {
-			throw new Error(`Failed to load ${htmlPath}: ${response.status} ${response.statusText}`)
-		}
-
-		const htmlContent = await response.text()
+		const htmlContent = await http.get(htmlPath)
+		
 		elContent.innerHTML = `<div class="html-content">${htmlContent}</div>`
 
 		const elContainer = elContent.querySelector('.html-content')

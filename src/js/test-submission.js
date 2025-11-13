@@ -1,6 +1,6 @@
 import { getRunnerLog, clearRunnerLog } from './services/usage-tracking.service.js'
+import * as http from './services/http.service.js'
 
-const TEST_SERVER_URL = 'http://localhost:3000/api/test'
 const BUTTON_RESET_DELAY_MS = 2000
 
 function createSubmissionFormData(scriptContent, scriptFile, exerciseId) {
@@ -34,20 +34,13 @@ export async function sendScriptToServer(currentExercise, flattenedToc) {
 	try {
 		elBtnTest.textContent = 'Submitting...'
 
-		const scriptResponse = await fetch(scriptSrc)
-
-		if (!scriptResponse.ok) throw new Error(`Script not found: ${scriptSrc}`)
-
-		const scriptContent = await scriptResponse.text()
+		const scriptContent = await http.get(scriptSrc)
 		const formData = createSubmissionFormData(scriptContent, scriptFile, exerciseItem.id)
 
-		const serverResponse = await fetch(TEST_SERVER_URL, { method: 'POST', body: formData, credentials: 'include' })
-
-		if (!serverResponse.ok) {
-			throw new Error(`Server error: ${serverResponse.status} ${serverResponse.statusText}`)
-		}
-
-		const htmlReport = await serverResponse.text()
+		const htmlReport = await http.postForm('/api/test', formData, {
+			baseUrl: 'TEST_SERVER',
+			credentials: 'include',
+		})
 
 		const blob = new Blob([htmlReport], { type: 'text/html' })
 		const url = URL.createObjectURL(blob)

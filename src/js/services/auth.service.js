@@ -1,8 +1,8 @@
+import * as http from './http.service.js'
+
 const AUTH_USER_KEY = 'loggedInUser'
 
 const SESSION_META_KEY = 'sessionMeta'
-
-const AUTH_SERVER_URL = 'http://localhost:3000'
 
 export function getLoggedinUser() {
 	const storedUser = localStorage.getItem(AUTH_USER_KEY)
@@ -18,11 +18,17 @@ export function getLoggedinUser() {
 }
 
 export async function login(credentials) {
-	return requestAuth('/api/auth/login', credentials)
+	return http.post('/api/auth/login', credentials, {
+		baseUrl: 'AUTH_SERVER',
+		credentials: 'include',
+	})
 }
 
 export async function signup(details) {
-	return requestAuth('/api/auth/signup', details)
+	return http.post('/api/auth/signup', details, {
+		baseUrl: 'AUTH_SERVER',
+		credentials: 'include',
+	})
 }
 
 export function saveLoggedinUser(user) {
@@ -51,15 +57,10 @@ export function markSessionStart() {
 
 export async function logout() {
 	try {
-		const response = await fetch(`${AUTH_SERVER_URL}/api/auth/logout`, {
-			method: 'POST',
+		await http.post('/api/auth/logout', null, {
+			baseUrl: 'AUTH_SERVER',
 			credentials: 'include',
 		})
-
-		if (!response.ok) {
-			console.error(`Failed to log out on server: ${response.status} ${response.statusText}`)
-			return false
-		}
 
 		localStorage.removeItem(AUTH_USER_KEY)
 		sessionStorage.removeItem(SESSION_META_KEY)
@@ -70,43 +71,4 @@ export async function logout() {
 	}
 }
 
-async function requestAuth(path, payload) {
-	const requestOptions = {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(payload),
-        credentials: 'include',
-    }
-
-	const url = `${AUTH_SERVER_URL}${path}`
-
-	let response
-
-	try {
-		response = await fetch(url, requestOptions)
-	} catch (error) {
-		throw new Error('Network error. Please check your connection and try again.')
-	}
-
-	const data = await parseResponseJson(response)
-
-	if (!response.ok) {
-		const message = data?.message || 'Authentication failed. Please verify your details.'
-		throw new Error(message)
-	}
-
-	if (!data || typeof data !== 'object') {
-		throw new Error('Unexpected response from the server.')
-	}
-
-	return data
-}
-
-async function parseResponseJson(response) {
-	try {
-		return await response.json()
-	} catch (error) {
-		throw new Error('Invalid response from the server.')
-	}
-}
 
