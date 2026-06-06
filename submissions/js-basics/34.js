@@ -8,21 +8,22 @@ console.log('My Index Of')
 // The function returns the index of the second string in the first, if it wasn’t found, return
 // -1 (don’t use the built-in indexOf...).
 
+console.log("INPUT: abbcd,bc")
 console.log('INPUT: abbcd,bc')
-console.log('EXPECTED: 2')
-console.log('ACTUAL: ', myIndexOf1('abbcd', 'bc'))
+ console.log('EXPECTED: 2')
+    console.log('ACTUAL: ', myIndexOf1('abbcd', 'bc'))
 
 console.log('INPUT: hello index, idx')
 console.log('EXPECTED: -1')
 console.log('ACTUAL: ', myIndexOf('hello index', 'idx'))
 
-function myIndexOf(str, searchStr) {
-  for (var i = 0; i <= str.length - searchStr.length; i++) {
-    if (str.substring(i, i + searchStr.length) === searchStr) {
+function myIndexOf(str, search_Str) {
+  for (var i = 0; i <= str.length - search_Str.length; i++) {
+    if (str.substring(i, i + search_Str.length) === search_Str) {
       return i
     }
   }
-  return -1
+  return -1;
 }
 
 
